@@ -59,5 +59,7 @@ class User(AbstractUser, BaseModel):
 
 
 class TempOtp(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_temp_otp")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="user_temp_otp"
+    )
     otp = models.CharField(max_length=10)

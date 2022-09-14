@@ -1,8 +1,8 @@
-from rest_framework.views import APIView
-
 from oauth2_provider.contrib.rest_framework import (
     OAuth2Authentication,
-    TokenMatchesOASRequirements)
+    TokenMatchesOASRequirements,
+)
+from rest_framework.views import APIView
 
 
 class BaseView(APIView):
