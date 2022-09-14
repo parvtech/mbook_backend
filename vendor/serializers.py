@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from vendor.models import Vendor, VendorDeliveryPartner
+from vendor.models import Vendor, VendorDeliveryPartner, Society
 
 
 class AddVendorSerializer(serializers.Serializer):
@@ -15,12 +15,12 @@ class AddVendorSerializer(serializers.Serializer):
 
 
 class VerifyOtpSerializer(serializers.Serializer):
-    vendor_id = serializers.IntegerField()
+    public_id = serializers.IntegerField()
     otp = serializers.IntegerField()
 
 
 class ResendOtpSerializer(serializers.Serializer):
-    vendor_id = serializers.IntegerField()
+    public_id = serializers.IntegerField()
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
@@ -49,3 +49,22 @@ class DeliveryPartnerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = VendorDeliveryPartner
         fields = ['public_id', 'first_name', 'mobile_no']
+
+
+class SocietySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Society
+        fields = ["public_id", "name", "address", "pincode", "lat", "long"]
+
+
+class CreateSocietySerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    address = serializers.CharField(max_length=255)
+    pincode = serializers.IntegerField()
+    lat = serializers.DecimalField(max_digits=11, decimal_places=2, required=True)
+    long = serializers.DecimalField(max_digits=11, decimal_places=2, required=True)
+
+
+class LoginSerializer(serializers.Serializer):
+    mobile_no = serializers.CharField(max_length=15)
+    user_type = serializers.ChoiceField(choices=["Vendor", "Customer", "VendorDeliveryPartner"])

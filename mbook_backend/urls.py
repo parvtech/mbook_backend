@@ -6,7 +6,7 @@ from django.views.static import serve
 import oauth2_provider.views as oauth2_views
 
 from mbook_backend import settings
-from vendor.views import LogoutView, ResendOtpView, VerifyOtpView
+from vendor.views import LogoutView, ResendOtpView, VerifyOtpView, LoginView
 
 urlpatterns = [
     # Admin app URLs.
@@ -15,6 +15,7 @@ urlpatterns = [
 
     # For vendor app URLs.
     path('vendor/', include('vendor.urls')),
+    path("login/", LoginView.as_view(), name='login'),
     path("logout/", LogoutView.as_view(), name='logout'),
     path("resend_otp/", ResendOtpView.as_view(), name="resend-otp"),
     path("verify_otp/", VerifyOtpView.as_view(), name="verify-otp"),

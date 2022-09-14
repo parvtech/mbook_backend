@@ -1,7 +1,7 @@
 from django.db import models
 
 from base.models import User, PublicId
-from vendor.models import Vendor
+from vendor.models import Vendor, Society
 
 SHIFTS = ((1, "morning"), (2, "evening"), (3, "both"))
 
@@ -15,6 +15,7 @@ class Customer(User):
     milk_unit = models.IntegerField()
     unit_price = models.DecimalField(max_digits=7, decimal_places=2)
     seller = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="vendor_customer")
+    society = models.ForeignKey(Society, on_delete=models.CASCADE, related_name="vendor_customer_society")
 
     def __str__(self):
         return "{}".format(self.username)
