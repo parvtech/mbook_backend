@@ -169,10 +169,7 @@ class VerifyOtpView(APIView):
                     "client_secret": app.client_secret,
                 }
                 token = requests.post(
-                    request.META["wsgi.url_scheme"]
-                    + "://"
-                    + request.META["HTTP_HOST"]
-                    + "/o/token/",
+                    request.build_absolute_uri("/") + "o/token/",
                     data=data,
                 )
                 data = token.json()
@@ -191,8 +188,11 @@ class VerifyOtpView(APIView):
 
 class VendorDetailView(BaseView):
     def get(self, request):
+        breakpoint()
         return Response(
-            ProfileDetailSerializer(vendor_obj(request.user.public_id)).data
+            ProfileDetailSerializer(
+                vendor_obj(request.user.public_id), context={"request": request}
+            ).data
         )
 
     def patch(self, request):

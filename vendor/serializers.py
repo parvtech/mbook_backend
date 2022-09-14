@@ -24,6 +24,11 @@ class ResendOtpSerializer(serializers.Serializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, vendor):
+        return self.context["request"].build_absolute_uri(vendor.avatar.url)
+
     class Meta:
         model = Vendor
         fields = ["public_id", "dairy_name", "name", "mobile_no", "address", "avatar"]
