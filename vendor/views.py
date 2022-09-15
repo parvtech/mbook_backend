@@ -130,9 +130,9 @@ class VerifyOtpView(APIView):
             if serial_data.is_valid(raise_exception=True):
                 data = serial_data.validated_data
                 role = None
-                temp_otp_obj = TempOtp.objects.get(
+                temp_otp_obj = TempOtp.objects.filter(
                     user__public_id=data["public_id"], otp=data["otp"]
-                )
+                ).last()
                 if Vendor.objects.filter(public_id=data["public_id"]).exists:
                     role = "vendor"
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
@@ -183,7 +183,9 @@ class VerifyOtpView(APIView):
                 temp_otp_obj.delete()
                 return Response(data, status=200)
         except TempOtp.DoesNotExist:
-            return Response({"error": "Invalid otp."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Please enter a valid OTP."}, status.HTTP_400_BAD_REQUEST
+            )
 
 
 class VendorDetailView(BaseView):
