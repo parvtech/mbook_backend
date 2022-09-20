@@ -40,7 +40,7 @@ class DashboardView(BaseView):
             "delivery_partners": VendorDeliveryPartner.objects.filter(
                 seller=vendor
             ).count(),
-            "society": 0,
+            "society": Society.objects.filter(vendor=vendor),
             "today_delivered_milk": 0,
         }
         return Response(data)
