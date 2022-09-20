@@ -133,12 +133,15 @@ class VerifyOtpView(APIView):
                 temp_otp_obj = TempOtp.objects.filter(
                     user__public_id=data["public_id"], otp=data["otp"]
                 ).last()
+                if temp_otp_obj is None:
+                    return Response({"error": "OTP has been expired. Please generate new OTP and try again.."},
+                                    status.HTTP_400_BAD_REQUEST)
                 if Vendor.objects.filter(public_id=data["public_id"]).exists:
                     role = "vendor"
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                    public_id=data["public_id"]
+                        public_id=data["public_id"]
                 ).exists:
                     role = "delivery"
                 # check otp expiry time
@@ -176,7 +179,7 @@ class VerifyOtpView(APIView):
                 data["name"] = user.first_name
                 data["role"] = role
                 data["access_token"] = (
-                    data.pop("token_type") + " " + data["access_token"]
+                        data.pop("token_type") + " " + data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
