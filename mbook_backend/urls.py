@@ -13,6 +13,7 @@ urlpatterns = [
     # Admin app URLs.
     path("admin/", admin.site.urls),
     # For customer app URLs.
+    path("customer/", include("customer.urls")),
     # For vendor app URLs.
     path("vendor/", include("vendor.urls")),
     path("login/", LoginView.as_view(), name="login"),

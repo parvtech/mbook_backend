@@ -15,10 +15,13 @@ class Customer(User):
     milk_unit = models.IntegerField()
     unit_price = models.DecimalField(max_digits=7, decimal_places=2)
     seller = models.ForeignKey(
-        Vendor, on_delete=models.CASCADE, related_name="vendor_customer"
+        Vendor, on_delete=models.CASCADE, related_name="vendor_customer", null=True
     )
     society = models.ForeignKey(
-        Society, on_delete=models.CASCADE, related_name="vendor_customer_society"
+        Society,
+        on_delete=models.CASCADE,
+        related_name="vendor_customer_society",
+        null=True,
     )
 
     def __str__(self):
