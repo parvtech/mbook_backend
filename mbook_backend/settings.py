@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+import django_heroku
 from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -175,6 +176,7 @@ REST_FRAMEWORK = {
     "offset": 0,
     "PAGE_SIZE": 16,
 }
+django_heroku.settings(locals())
 
 LOGGING = {
     "version": 1,
