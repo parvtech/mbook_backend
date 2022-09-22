@@ -254,7 +254,8 @@ class AddDeliveryPartnerView(BaseView):
 class SocietyView(BaseView):
     @staticmethod
     def get(request):
-        return Response(SocietySerializer(Society.objects.filter(), many=True).data)
+        return Response(
+            SocietySerializer(Society.objects.filter(vendor=vendor_obj(request.user.public_id)), many=True).data)
 
     @staticmethod
     def post(request):
