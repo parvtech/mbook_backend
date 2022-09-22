@@ -43,6 +43,7 @@ class DashboardView(BaseView):
             "society": Society.objects.filter(vendor=vendor).count(),
             "today_delivered_milk": 0,
         }
+        print("Hello")
         return Response(data)
 
 
