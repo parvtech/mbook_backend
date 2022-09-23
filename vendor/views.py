@@ -278,11 +278,11 @@ class SocietyView(BaseView):
 
 class DeliveryPartnerView(BaseView):
     @staticmethod
-    def delete(partner_id):
+    def delete(request, public_id):
         try:
-            vendor_partner = VendorDeliveryPartner.objects.get(public_id=partner_id)
+            vendor_partner = VendorDeliveryPartner.objects.get(public_id=public_id)
             vendor_partner.delete()
-            return Response({"message":"Partner deleted successfully."})
+            return Response({"message": "Partner deleted successfully."})
         except VendorDeliveryPartner.DoesNotExist:
             return Response({
                 "error": "Partner id does not exists."
