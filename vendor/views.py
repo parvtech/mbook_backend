@@ -274,3 +274,16 @@ class SocietyView(BaseView):
                 },
                 status.HTTP_201_CREATED,
             )
+
+
+class DeliveryPartnerView(BaseView):
+    @staticmethod
+    def delete(partner_id):
+        try:
+            vendor_partner = VendorDeliveryPartner.objects.get(public_id=partner_id)
+            vendor_partner.delete()
+            return Response({"message":"Partner deleted successfully."})
+        except VendorDeliveryPartner.DoesNotExist:
+            return Response({
+                "error": "Partner id does not exists."
+            }, status.HTTP_404_NOT_FOUND)
