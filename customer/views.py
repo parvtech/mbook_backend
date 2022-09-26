@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from django.db.models import Value, FloatField
+from django.db.models import Value, FloatField, Q
 
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status
@@ -71,6 +71,6 @@ class CustomerView(APIView):
         society_id = request.GET.get("society_id")
         customers = Customer.objects.annotate(liter=Value(0, output_field=FloatField()),
                                               price=Value(0, output_field=FloatField())).filter(
-            seller=vendor_obj(request.user.public_id), society__public_id=society_id
+            Q(seller=vendor_obj(request.user.public_id)) & Q(society__public_id=society_id),
         )
         return Response(CustomerListBySocietySerializer(customers, many=True).data)
