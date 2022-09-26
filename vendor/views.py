@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import Value, IntegerField, FloatField
+from django.db.models import FloatField, IntegerField, Value
 from django.utils import timezone
 
 import requests
@@ -136,14 +136,18 @@ class VerifyOtpView(APIView):
                     user__public_id=data["public_id"], otp=data["otp"]
                 ).last()
                 if temp_otp_obj is None:
-                    return Response({"error": "OTP has been expired. Please generate new OTP and try again.."},
-                                    status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {
+                            "error": "OTP has been expired. Please generate new OTP and try again.."
+                        },
+                        status.HTTP_400_BAD_REQUEST,
+                    )
                 if Vendor.objects.filter(public_id=data["public_id"]).exists:
                     role = "vendor"
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                        public_id=data["public_id"]
+                    public_id=data["public_id"]
                 ).exists:
                     role = "delivery"
                 # check otp expiry time
@@ -181,7 +185,7 @@ class VerifyOtpView(APIView):
                 data["name"] = user.first_name
                 data["role"] = role
                 data["access_token"] = (
-                        data.pop("token_type") + " " + data["access_token"]
+                    data.pop("token_type") + " " + data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
@@ -255,8 +259,9 @@ class AddDeliveryPartnerView(BaseView):
 class SocietyView(BaseView):
     @staticmethod
     def get(request):
-        society = Society.objects.annotate(liter=Value(0, output_field=FloatField())).filter(
-            vendor=vendor_obj(request.user.public_id))
+        society = Society.objects.annotate(
+            liter=Value(0, output_field=FloatField())
+        ).filter(vendor=vendor_obj(request.user.public_id))
         serial_data = SocietySerializer(society, many=True).data
         return Response(serial_data)
 
@@ -287,6 +292,6 @@ class DeliveryPartnerView(BaseView):
             vendor_partner.delete()
             return Response({"message": "Partner deleted successfully."})
         except VendorDeliveryPartner.DoesNotExist:
-            return Response({
-                "error": "Partner id does not exists."
-            }, status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Partner id does not exists."}, status.HTTP_404_NOT_FOUND
+            )

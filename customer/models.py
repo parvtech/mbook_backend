@@ -1,6 +1,6 @@
 from django.db import models
 
-from base.models import PublicId, User
+from base.models import BaseModel, PublicId, User
 from vendor.models import Society, Vendor
 
 SHIFTS = ((1, "morning"), (2, "evening"), (3, "both"))
@@ -37,3 +37,11 @@ class Customer(User):
         if self.first_name:
             return self.first_name
         return None
+
+
+# class CustomerOrder(BaseModel):
+#     class Meta:
+#         db_table = "customer_order"
+#
+#     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cust_order")
+#     # vendor = models

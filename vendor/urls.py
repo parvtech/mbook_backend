@@ -4,8 +4,9 @@ from vendor.views import (
     AddDeliveryPartnerView,
     AddVendorView,
     DashboardView,
+    DeliveryPartnerView,
     SocietyView,
-    VendorDetailView, DeliveryPartnerView,
+    VendorDetailView,
 )
 
 urlpatterns = [
@@ -13,6 +14,10 @@ urlpatterns = [
     path("dashboard/", DashboardView.as_view(), name="vendor-dashboard"),
     path("profile/", VendorDetailView.as_view(), name="vendor-profile"),
     path("partner/", AddDeliveryPartnerView.as_view(), name="delivery-partner"),
-    path("partner/<str:public_id>/", DeliveryPartnerView.as_view(), name="delivery-partner-detail"),
+    path(
+        "partner/<str:public_id>/",
+        DeliveryPartnerView.as_view(),
+        name="delivery-partner-detail",
+    ),
     path("society/", SocietyView.as_view(), name="vendor-society"),
 ]

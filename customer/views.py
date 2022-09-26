@@ -1,5 +1,5 @@
 from django.db import IntegrityError
-from django.db.models import Value, FloatField, Q
+from django.db.models import FloatField, Q, Value
 
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status
@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from base.models import PublicId, TempOtp
 from base.utils import PostTokenMatchesOASRequirement
 from customer.models import Customer
-from customer.serializers import CustomerSerializer, CustomerListBySocietySerializer
+from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer
 from vendor.models import Society
 from vendor.views import vendor_obj
 
@@ -61,16 +61,18 @@ class CustomerView(APIView):
             )
         except Society.DoesNotExist:
             return Response(
-                {
-                    "error": "Society does not exists."
-                },
+                {"error": "Society does not exists."},
                 status.HTTP_404_NOT_FOUND,
             )
 
     def get(self, request):
+        query = Q()
         society_id = request.GET.get("society_id")
-        customers = Customer.objects.annotate(liter=Value(0, output_field=FloatField()),
-                                              price=Value(0, output_field=FloatField())).filter(
-            Q(seller=vendor_obj(request.user.public_id)) & Q(society__public_id=society_id),
-        )
+        query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
+        if society_id:
+            query.add(Q(society__public_id=society_id), query.connector)
+        customers = Customer.objects.annotate(
+            liter=Value(0, output_field=FloatField()),
+            price=Value(0, output_field=FloatField()),
+        ).filter(query)
         return Response(CustomerListBySocietySerializer(customers, many=True).data)
