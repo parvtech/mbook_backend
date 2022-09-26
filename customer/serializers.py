@@ -9,7 +9,7 @@ class CustomerSerializer(serializers.Serializer):
     house_no = serializers.CharField(max_length=50)
     block_no = serializers.CharField(max_length=50)
     address = serializers.CharField(max_length=255)
-    pincode = serializers.IntegerField()
+    pincode = serializers.IntegerField(required=False)
     avatar = serializers.ImageField(required=False)
     lat = serializers.DecimalField(max_digits=11, decimal_places=2, required=False)
     long = serializers.DecimalField(max_digits=11, decimal_places=2, required=False)
@@ -18,6 +18,7 @@ class CustomerSerializer(serializers.Serializer):
     milk_unit = serializers.FloatField()
     unit_price = serializers.FloatField()
     society_id = serializers.IntegerField()
+    partner_id = serializers.IntegerField()
 
 
 class CustomerListBySocietySerializer(serializers.ModelSerializer):

@@ -9,7 +9,7 @@ STATUS = ((1, "on_the_way"), (2, "delivered"))
 
 class Customer(User):
     class Meta:
-        db_table = "Customer"
+        db_table = "customer"
 
     start_date = models.DateField()
     shift = models.CharField(choices=SHIFTS, max_length=10, null=True, blank=True)
@@ -17,6 +17,9 @@ class Customer(User):
     unit_price = models.DecimalField(max_digits=7, decimal_places=2)
     seller = models.ForeignKey(
         Vendor, on_delete=models.CASCADE, related_name="vendor_customer", null=True
+    )
+    partner = models.ForeignKey(
+        VendorDeliveryPartner, on_delete=models.CASCADE, related_name="vendor_customer_partner", null=True
     )
     society = models.ForeignKey(
         Society,

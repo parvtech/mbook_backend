@@ -10,7 +10,7 @@ from base.models import PublicId, TempOtp
 from base.utils import PostTokenMatchesOASRequirement
 from customer.models import Customer
 from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer
-from vendor.models import Society
+from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
 
 
@@ -37,6 +37,7 @@ class CustomerView(APIView):
                     username=public_id,
                     first_name=data.pop("name"),
                     society=Society.objects.get(public_id=data.pop("society_id")),
+                    partner=VendorDeliveryPartner.objects.get(public_id=data.pop("partner_id")),
                     **data
                 )
                 if request.user.id:
@@ -62,6 +63,11 @@ class CustomerView(APIView):
         except Society.DoesNotExist:
             return Response(
                 {"error": "Society does not exists."},
+                status.HTTP_404_NOT_FOUND,
+            )
+        except VendorDeliveryPartner.DoesNotExist:
+            return Response(
+                {"error": "Delivery partner does not exists."},
                 status.HTTP_404_NOT_FOUND,
             )
 
