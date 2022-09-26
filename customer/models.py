@@ -1,9 +1,10 @@
 from django.db import models
 
 from base.models import BaseModel, PublicId, User
-from vendor.models import Society, Vendor
+from vendor.models import Society, Vendor, VendorDeliveryPartner
 
 SHIFTS = ((1, "morning"), (2, "evening"), (3, "both"))
+STATUS = ((1, "on_the_way"), (2, "delivered"))
 
 
 class Customer(User):
@@ -39,9 +40,16 @@ class Customer(User):
         return None
 
 
-# class CustomerOrder(BaseModel):
-#     class Meta:
-#         db_table = "customer_order"
-#
-#     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cust_order")
-#     # vendor = models
+class CustomerOrder(BaseModel):
+    class Meta:
+        db_table = "customer_order"
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cust_order")
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="vendor_customer_order")
+    delivery = models.ForeignKey(VendorDeliveryPartner, on_delete=models.DO_NOTHING,
+                                 related_name="vendor_delivery_partner_assign_order")
+    shift = models.CharField(max_length=150)
+    milk_quantity = models.FloatField()
+    price = models.FloatField()
+    status = models.CharField(choices=STATUS, max_length=10, null=True, blank=True)
+    order_date = models.DateField()
