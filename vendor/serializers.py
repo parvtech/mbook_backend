@@ -57,9 +57,11 @@ class DeliveryPartnerListSerializer(serializers.ModelSerializer):
 
 
 class SocietySerializer(serializers.ModelSerializer):
+    liter = serializers.IntegerField()
+
     class Meta:
         model = Society
-        fields = ["public_id", "name", "address", "pincode", "lat", "long"]
+        fields = ["public_id", "name", "address", "pincode", "lat", "long", "liter"]
 
 
 class CreateSocietySerializer(serializers.Serializer):

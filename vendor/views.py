@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+from django.db.models import Value, IntegerField
 from django.utils import timezone
 
 import requests
@@ -254,8 +255,10 @@ class AddDeliveryPartnerView(BaseView):
 class SocietyView(BaseView):
     @staticmethod
     def get(request):
-        return Response(
-            SocietySerializer(Society.objects.filter(vendor=vendor_obj(request.user.public_id)), many=True).data)
+        society = Society.objects.annotate(liter=Value(0, output_field=IntegerField())).filter(
+            vendor=vendor_obj(request.user.public_id))
+        serial_data = SocietySerializer(society, many=True).data
+        return Response(serial_data)
 
     @staticmethod
     def post(request):

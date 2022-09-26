@@ -56,3 +56,7 @@ class CustomerView(APIView):
                 },
                 status.HTTP_400_BAD_REQUEST,
             )
+
+    def get(self, request):
+        society_id = request.GET.get("society_id")
+        customer = Customer.objects.filter()
