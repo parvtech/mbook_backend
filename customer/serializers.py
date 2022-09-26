@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from customer.models import Customer
+
 
 class CustomerSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=150)
@@ -15,3 +17,13 @@ class CustomerSerializer(serializers.Serializer):
     shift = serializers.ChoiceField(choices=["morning", "evening", "both"])
     milk_unit = serializers.FloatField()
     unit_price = serializers.FloatField()
+    society_id = serializers.IntegerField()
+
+
+class CustomerListBySocietySerializer(serializers.ModelSerializer):
+    liter = serializers.FloatField()
+    price = serializers.FloatField()
+
+    class Meta:
+        model = Customer
+        fields = ["public_id", "name", "house_no", "block_no", "address", "pincode", "lat", "long", "liter", "price"]

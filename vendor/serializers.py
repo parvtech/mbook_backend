@@ -57,7 +57,7 @@ class DeliveryPartnerListSerializer(serializers.ModelSerializer):
 
 
 class SocietySerializer(serializers.ModelSerializer):
-    liter = serializers.IntegerField()
+    liter = serializers.FloatField()
 
     class Meta:
         model = Society
