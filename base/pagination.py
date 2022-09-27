@@ -1,10 +1,7 @@
-from hr_backend.settings import REST_FRAMEWORK
+from mbook_backend.settings import REST_FRAMEWORK
 
 
-def default_pagination(request):
-    """
-    This function is created for validate limit and offset.
-    """
+def custom_pagination(request):
     offset = request.GET.get("page")
     limit = request.GET.get("size")
     if offset is None:

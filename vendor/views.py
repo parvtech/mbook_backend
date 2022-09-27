@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from base.models import PublicId, TempOtp, User
+from base.pagination import custom_pagination
 from base.views import BaseView
 from customer.models import Customer
 from mbook_backend.settings import USER_OTP_EXPIRED
@@ -246,14 +247,17 @@ class AddDeliveryPartnerView(BaseView):
             )
 
     def get(self, request):
-        return Response(
-            DeliveryPartnerListSerializer(
-                VendorDeliveryPartner.objects.filter(
-                    seller=vendor_obj(request.user.public_id)
-                ),
-                many=True,
-            ).data
+        pagination = request.GET.get("pagination")
+        limit, offset = custom_pagination(request)
+        partner = VendorDeliveryPartner.objects.filter(
+            seller=vendor_obj(request.user.public_id)
         )
+        response = partner[offset:limit] if pagination == "true" else partner
+        partner_list = DeliveryPartnerListSerializer(
+            response,
+            many=True,
+        ).data
+        return Response({"partner_list": partner_list, "count": partner.count()})
 
 
 class SocietyView(BaseView):

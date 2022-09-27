@@ -19,7 +19,10 @@ class Customer(User):
         Vendor, on_delete=models.CASCADE, related_name="vendor_customer", null=True
     )
     partner = models.ForeignKey(
-        VendorDeliveryPartner, on_delete=models.CASCADE, related_name="vendor_customer_partner", null=True
+        VendorDeliveryPartner,
+        on_delete=models.CASCADE,
+        related_name="vendor_customer_partner",
+        null=True,
     )
     society = models.ForeignKey(
         Society,
@@ -47,10 +50,17 @@ class CustomerOrder(BaseModel):
     class Meta:
         db_table = "customer_order"
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="cust_order")
-    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="vendor_customer_order")
-    delivery = models.ForeignKey(VendorDeliveryPartner, on_delete=models.DO_NOTHING,
-                                 related_name="vendor_delivery_partner_assign_order")
+    customer = models.ForeignKey(
+        Customer, on_delete=models.CASCADE, related_name="cust_order"
+    )
+    vendor = models.ForeignKey(
+        Vendor, on_delete=models.CASCADE, related_name="vendor_customer_order"
+    )
+    delivery = models.ForeignKey(
+        VendorDeliveryPartner,
+        on_delete=models.DO_NOTHING,
+        related_name="vendor_delivery_partner_assign_order",
+    )
     shift = models.CharField(max_length=150)
     milk_quantity = models.FloatField()
     price = models.FloatField()

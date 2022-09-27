@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from base.models import PublicId, TempOtp
+from base.pagination import custom_pagination
 from base.utils import PostTokenMatchesOASRequirement
 from customer.models import Customer
 from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer
@@ -37,7 +38,9 @@ class CustomerView(APIView):
                     username=public_id,
                     first_name=data.pop("name"),
                     society=Society.objects.get(public_id=data.pop("society_id")),
-                    partner=VendorDeliveryPartner.objects.get(public_id=data.pop("partner_id")),
+                    partner=VendorDeliveryPartner.objects.get(
+                        public_id=data.pop("partner_id")
+                    ),
                     **data
                 )
                 if request.user.id:
@@ -72,13 +75,21 @@ class CustomerView(APIView):
             )
 
     def get(self, request):
-        query = Q()
+        pagination = request.GET.get("pagination")
         society_id = request.GET.get("society_id")
+        query = Q()
+        limit, offset = custom_pagination(request)
         query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
         if society_id:
             query.add(Q(society__public_id=society_id), query.connector)
-        customers = Customer.objects.annotate(
-            liter=Value(0, output_field=FloatField()),
-            price=Value(0, output_field=FloatField()),
-        ).filter(query)
-        return Response(CustomerListBySocietySerializer(customers, many=True).data)
+        customers = (
+            Customer.objects.annotate(
+                liter=Value(0, output_field=FloatField()),
+                price=Value(0, output_field=FloatField()),
+            )
+            .filter(query)
+            .order_by("-id")
+        )
+        response = customers[offset:limit] if pagination == "true" else customers
+        customers_list = CustomerListBySocietySerializer(response, many=True).data
+        return Response({"customer_list": customers_list, "count": customers.count()})
