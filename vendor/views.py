@@ -200,7 +200,6 @@ class VerifyOtpView(APIView):
 
 class VendorDetailView(BaseView):
     def get(self, request):
-        breakpoint()
         return Response(
             ProfileDetailSerializer(
                 vendor_obj(request.user.public_id), context={"request": request}
