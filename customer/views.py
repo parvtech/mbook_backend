@@ -9,6 +9,7 @@ from base.pagination import custom_pagination
 from base.views import BaseView
 from customer.models import Customer, CustomerOrder
 from customer.serializers import (
+    CreateOrderSerializer,
     CustomerListByShiftSerializer,
     CustomerListBySocietySerializer,
     CustomerSerializer,
@@ -130,3 +131,30 @@ class CustomerView(BaseView):
             customers_list = CustomerListBySocietySerializer(response, many=True).data
             final_data = {"customer_list": customers_list, "count": customers.count()}
         return Response(final_data)
+
+    def put(self, request):
+        try:
+            serial_data = CreateOrderSerializer(data=request.data)
+            if serial_data.is_valid(raise_exception=True):
+                order_data = serial_data.validated_data
+                customer = Customer.objects.get(public_id=order_data["customer_id"])
+                order_data = {
+                    "customer": customer,
+                    "vendor": customer.seller,
+                    "delivery": customer.partner,
+                    "shift": order_data["shift"],
+                    "milk_quantity": order_data["milk_unit"],
+                    "price": order_data["unit_price"],
+                    "status": "on_the_way",
+                    "order_date": order_data["start_date"],
+                }
+                CustomerOrder.objects.get(
+                    customer=customer,
+                    order_date=order_data["order_date"],
+                    shift=order_data["shift"],
+                )
+                create_customer_order(**order_data)
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Order already created with a given date and shift."}
+            )

@@ -72,3 +72,11 @@ class CustomerListByShiftSerializer(serializers.ModelSerializer):
             "status",
             "order_date",
         ]
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    customer_id = serializers.IntegerField()
+    shift = serializers.CharField()
+    milk_quantity = serializers.FloatField()
+    price = serializers.FloatField()
+    order_date = serializers.DateField()

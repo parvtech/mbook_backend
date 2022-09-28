@@ -148,7 +148,7 @@ class VerifyOtpView(APIView):
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                        public_id=data["public_id"]
+                    public_id=data["public_id"]
                 ).exists:
                     role = "delivery"
                 # check otp expiry time
@@ -186,7 +186,7 @@ class VerifyOtpView(APIView):
                 data["name"] = user.first_name
                 data["role"] = role
                 data["access_token"] = (
-                        data.pop("token_type") + " " + data["access_token"]
+                    data.pop("token_type") + " " + data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
@@ -220,7 +220,10 @@ class VendorDetailView(BaseView):
                 vendor.save()
                 return Response({"message": "Profile updated."})
         except IntegrityError:
-            return Response({"error": "This mobile number associated with another user."}, status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "This mobile number associated with another user."},
+                status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class AddDeliveryPartnerView(BaseView):
