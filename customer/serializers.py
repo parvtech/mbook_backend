@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from customer.models import Customer
+from customer.models import Customer, CustomerOrder
 
 
 class CustomerSerializer(serializers.Serializer):
@@ -44,14 +44,21 @@ class CustomerListBySocietySerializer(serializers.ModelSerializer):
 
 
 class CustomerListByShiftSerializer(serializers.ModelSerializer):
-    liter = serializers.FloatField()
-    price = serializers.FloatField()
-    society_id = serializers.IntegerField(source="society.public_id")
+    name = serializers.CharField(source="customer.name")
+    customer_public_id = serializers.IntegerField(source="customer.public_id")
+    order_public_id = serializers.IntegerField(source="public_id")
+    house_no = serializers.CharField(source="customer.house_no")
+    block_no = serializers.CharField(source="customer.block_no")
+    address = serializers.CharField(source="customer.address")
+    pincode = serializers.CharField(source="customer.pincode")
+    lat = serializers.CharField(source="customer.lat")
+    long = serializers.CharField(source="customer.long")
 
     class Meta:
-        model = Customer
+        model = CustomerOrder
         fields = [
-            "public_id",
+            "customer_public_id",
+            "order_public_id",
             "name",
             "house_no",
             "block_no",
@@ -59,7 +66,9 @@ class CustomerListByShiftSerializer(serializers.ModelSerializer):
             "pincode",
             "lat",
             "long",
-            "liter",
+            "shift",
+            "milk_quantity",
             "price",
-            "society_id",
+            "status",
+            "order_date",
         ]

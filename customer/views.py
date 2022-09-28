@@ -97,6 +97,7 @@ class CustomerView(BaseView):
         pagination = request.GET.get("pagination")
         society_id = request.GET.get("society_id")
         shift = request.GET.get("shift")
+        order_date = request.GET.get("order_date")
         query = Q()
         limit, offset = custom_pagination(request)
         query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
@@ -110,10 +111,22 @@ class CustomerView(BaseView):
             .filter(query)
             .order_by("-id")
         )
-        if shift and society_id:
+        if shift and society_id and order_date:
+            customers = CustomerOrder.objects.filter(
+                order_date=order_date,
+                customer__society__public_id=society_id,
+                shift=shift,
+            ).order_by("-id")
             response = customers[offset:limit] if pagination == "true" else customers
             customers_list = CustomerListByShiftSerializer(response, many=True).data
+            society_name = Society.objects.filter(public_id=society_id).first()
+            final_data = {
+                "customer_list": customers_list,
+                "count": customers.count(),
+                "society_name": society_name.name if society_name else None,
+            }
         else:
             response = customers[offset:limit] if pagination == "true" else customers
             customers_list = CustomerListBySocietySerializer(response, many=True).data
-        return Response({"customer_list": customers_list, "count": customers.count()})
+            final_data = {"customer_list": customers_list, "count": customers.count()}
+        return Response(final_data)
