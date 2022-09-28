@@ -148,7 +148,7 @@ class VerifyOtpView(APIView):
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                    public_id=data["public_id"]
+                        public_id=data["public_id"]
                 ).exists:
                     role = "delivery"
                 # check otp expiry time
@@ -186,7 +186,7 @@ class VerifyOtpView(APIView):
                 data["name"] = user.first_name
                 data["role"] = role
                 data["access_token"] = (
-                    data.pop("token_type") + " " + data["access_token"]
+                        data.pop("token_type") + " " + data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
@@ -207,17 +207,20 @@ class VendorDetailView(BaseView):
         )
 
     def patch(self, request):
-        serial_data = AddVendorSerializer(data=request.data, partial=True)
-        if serial_data.is_valid(raise_exception=True):
-            data = serial_data.validated_data
-            vendor = vendor_obj(request.user.public_id)
-            for key, value in data.items():
-                try:
-                    setattr(vendor, key, value)
-                except:
-                    vendor.first_name = value
-            vendor.save()
-            return Response({"message": "Profile updated."})
+        try:
+            serial_data = AddVendorSerializer(data=request.data, partial=True)
+            if serial_data.is_valid(raise_exception=True):
+                data = serial_data.validated_data
+                vendor = vendor_obj(request.user.public_id)
+                for key, value in data.items():
+                    try:
+                        setattr(vendor, key, value)
+                    except:
+                        vendor.first_name = value
+                vendor.save()
+                return Response({"message": "Profile updated."})
+        except IntegrityError:
+            return Response({"error": "This mobile number associated with another user."}, status.HTTP_400_BAD_REQUEST)
 
 
 class AddDeliveryPartnerView(BaseView):
