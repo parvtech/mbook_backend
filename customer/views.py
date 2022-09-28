@@ -1,24 +1,27 @@
 from django.db import IntegrityError
 from django.db.models import FloatField, Q, Value
 
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from base.models import PublicId, TempOtp
 from base.pagination import custom_pagination
-from base.utils import PostTokenMatchesOASRequirement
+from base.views import BaseView
 from customer.models import Customer, CustomerOrder
-from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer, CustomerListByShiftSerializer
+from customer.serializers import (
+    CustomerListByShiftSerializer,
+    CustomerListBySocietySerializer,
+    CustomerSerializer,
+)
 from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
 
 
-class CustomerView(APIView):
-    authentication_classes = [OAuth2Authentication]
-    permission_classes = [PostTokenMatchesOASRequirement]
+def create_customer_order(**data):
+    CustomerOrder.objects.create(public_id=PublicId.create_public_id(), **data)
 
+
+class CustomerView(BaseView):
     required_alternate_scopes = {
         "POST": [["create"]],
         "GET": [["read"]],
@@ -39,22 +42,30 @@ class CustomerView(APIView):
                     first_name=data.pop("name"),
                     society=Society.objects.get(public_id=data.pop("society_id")),
                     partner=VendorDeliveryPartner.objects.get(
-                        public_id=data.pop("partner_id"),
-                        seller=vendor_obj(request.user.public_id)
+                        public_id=data.pop("partner_id")
                     ),
+                    seller=vendor_obj(request.user.public_id),
                     **data
                 )
-                # CustomerOrder.objects.create(
-                #     public_id=PublicId.create_public_id(),
-                #     vendor=customer.seller,
-                #     delivery=customer.partner,
-                #     shift="morning",
-                #     milk_quantity=data["milk_unit"],
-                #     price=data["unit_price"],
-                #     status="on_the_way",
-                #     order_date=data["start_date"]
-                # )
-
+                order_data = {
+                    "customer": customer,
+                    "vendor": customer.seller,
+                    "delivery": customer.partner,
+                    "shift": data["shift"],
+                    "milk_quantity": data["milk_unit"],
+                    "price": data["unit_price"],
+                    "status": "on_the_way",
+                    "order_date": data["start_date"],
+                }
+                if data["shift"] == "both":
+                    for idx in range(2):
+                        shift = "morning"
+                        if idx == 0:
+                            shift = "evening"
+                        order_data["shift"] = shift
+                        create_customer_order(**order_data)
+                else:
+                    create_customer_order(**order_data)
                 TempOtp.objects.create(
                     public_id=PublicId.create_public_id(), user=customer, otp=0000
                 )
