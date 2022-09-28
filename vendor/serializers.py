@@ -34,7 +34,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vendor
-        fields = ["public_id", "dairy_name", "name", "mobile_no", "address", "avatar"]
+        fields = ["public_id", "dairy_name", "name", "mobile_no", "address", "avatar", "pincode"]
 
 
 class VendorProfileSerailizer(serializers.Serializer):
