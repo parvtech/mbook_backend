@@ -27,7 +27,10 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
 
     def get_avatar(self, vendor):
-        return self.context["request"].build_absolute_uri(vendor.avatar.url)
+        try:
+            return self.context["request"].build_absolute_uri(vendor.avatar.url)
+        except:
+            return None
 
     class Meta:
         model = Vendor

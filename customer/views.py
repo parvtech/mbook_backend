@@ -9,8 +9,8 @@ from rest_framework.views import APIView
 from base.models import PublicId, TempOtp
 from base.pagination import custom_pagination
 from base.utils import PostTokenMatchesOASRequirement
-from customer.models import Customer
-from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer
+from customer.models import Customer, CustomerOrder
+from customer.serializers import CustomerListBySocietySerializer, CustomerSerializer, CustomerListByShiftSerializer
 from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
 
@@ -39,17 +39,25 @@ class CustomerView(APIView):
                     first_name=data.pop("name"),
                     society=Society.objects.get(public_id=data.pop("society_id")),
                     partner=VendorDeliveryPartner.objects.get(
-                        public_id=data.pop("partner_id")
+                        public_id=data.pop("partner_id"),
+                        seller=vendor_obj(request.user.public_id)
                     ),
                     **data
                 )
-                if request.user.id:
-                    customer.seller = vendor_obj(request.user.public_id)
-                    customer.save()
-                else:
-                    TempOtp.objects.create(
-                        public_id=PublicId.create_public_id(), user=customer, otp=0000
-                    )
+                # CustomerOrder.objects.create(
+                #     public_id=PublicId.create_public_id(),
+                #     vendor=customer.seller,
+                #     delivery=customer.partner,
+                #     shift="morning",
+                #     milk_quantity=data["milk_unit"],
+                #     price=data["unit_price"],
+                #     status="on_the_way",
+                #     order_date=data["start_date"]
+                # )
+
+                TempOtp.objects.create(
+                    public_id=PublicId.create_public_id(), user=customer, otp=0000
+                )
                 return Response(
                     {
                         "message": "Added successfully.",
@@ -77,6 +85,7 @@ class CustomerView(APIView):
     def get(self, request):
         pagination = request.GET.get("pagination")
         society_id = request.GET.get("society_id")
+        shift = request.GET.get("shift")
         query = Q()
         limit, offset = custom_pagination(request)
         query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
@@ -90,6 +99,10 @@ class CustomerView(APIView):
             .filter(query)
             .order_by("-id")
         )
-        response = customers[offset:limit] if pagination == "true" else customers
-        customers_list = CustomerListBySocietySerializer(response, many=True).data
+        if shift and society_id:
+            response = customers[offset:limit] if pagination == "true" else customers
+            customers_list = CustomerListByShiftSerializer(response, many=True).data
+        else:
+            response = customers[offset:limit] if pagination == "true" else customers
+            customers_list = CustomerListBySocietySerializer(response, many=True).data
         return Response({"customer_list": customers_list, "count": customers.count()})

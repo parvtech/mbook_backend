@@ -41,3 +41,25 @@ class CustomerListBySocietySerializer(serializers.ModelSerializer):
             "price",
             "society_id",
         ]
+
+
+class CustomerListByShiftSerializer(serializers.ModelSerializer):
+    liter = serializers.FloatField()
+    price = serializers.FloatField()
+    society_id = serializers.IntegerField(source="society.public_id")
+
+    class Meta:
+        model = Customer
+        fields = [
+            "public_id",
+            "name",
+            "house_no",
+            "block_no",
+            "address",
+            "pincode",
+            "lat",
+            "long",
+            "liter",
+            "price",
+            "society_id",
+        ]
