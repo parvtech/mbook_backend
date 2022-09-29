@@ -8,6 +8,7 @@ from django.db.models import FloatField, IntegerField, Value
 from django.utils import timezone
 
 import requests
+from django.utils.datetime_safe import datetime
 from oauth2_provider.models import AccessToken, Application
 from rest_framework import status
 from rest_framework.response import Response
@@ -151,7 +152,7 @@ class VerifyOtpView(APIView):
                 elif Customer.objects.filter(public_id=data["public_id"]).exists:
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                    public_id=data["public_id"]
+                        public_id=data["public_id"]
                 ).exists:
                     role = "delivery"
                 # check otp expiry time
@@ -189,7 +190,7 @@ class VerifyOtpView(APIView):
                 data["name"] = user.first_name
                 data["role"] = role
                 data["access_token"] = (
-                    data.pop("token_type") + " " + data["access_token"]
+                        data.pop("token_type") + " " + data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
@@ -271,9 +272,7 @@ class AddDeliveryPartnerView(BaseView):
 class SocietyView(BaseView):
     @staticmethod
     def get(request):
-        society = Society.objects.annotate(
-            liter=Value(0, output_field=FloatField())
-        ).filter(vendor=vendor_obj(request.user.public_id))
+        society = Society.objects.filter(vendor=vendor_obj(request.user.public_id))
         serial_data = SocietySerializer(society, many=True).data
         return Response(serial_data)
 

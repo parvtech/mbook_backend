@@ -1,3 +1,5 @@
+from django.db.models import Sum
+from django.utils.datetime_safe import datetime
 from rest_framework import serializers
 
 from customer.models import CustomerOrder
@@ -69,11 +71,16 @@ class DeliveryPartnerListSerializer(serializers.ModelSerializer):
 
 
 class SocietySerializer(serializers.ModelSerializer):
-    liter = serializers.FloatField()
+    liter = serializers.SerializerMethodField()
 
     class Meta:
         model = Society
         fields = ["public_id", "name", "address", "pincode", "lat", "long", "liter"]
+
+    def get_liter(self, obj):
+        date = datetime.now().date()
+        return CustomerOrder.objects.filter(vendor=obj.vendor, order_date=date).aggregate(Sum('milk_quantity')).get(
+            "milk_quantity__sum")
 
 
 class CreateSocietySerializer(serializers.Serializer):
