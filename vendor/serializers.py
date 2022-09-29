@@ -89,6 +89,9 @@ class LoginSerializer(serializers.Serializer):
 
 
 class CalendarSerializer(serializers.ModelSerializer):
+    customer_id = serializers.IntegerField(source="customer.public_id")
+    order_id = serializers.IntegerField(source="public_id")
+
     class Meta:
         model = CustomerOrder
-        fields = "__all__"
+        fields = ["customer_id", "order_id", "order_date", "milk_quantity"]

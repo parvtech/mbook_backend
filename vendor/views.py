@@ -324,5 +324,23 @@ class CalendarView(BaseView):
             result = json.loads(
                 json.dumps(CalendarSerializer(order_data, many=True).data)
             )
-            return Response(result)
+            filter_data = []
+            ids = []
+            for order in result:
+                customer_id = order["customer_id"]
+                if customer_id in ids:
+                    index = ids.index(customer_id)
+                    update_data = filter_data[index]
+                    old_milk = update_data["milk"]
+                    update_data["milk"] = old_milk + order["milk_quantity"]
+                else:
+                    data_prepare = {
+                        "order_date": order["order_date"],
+                        "milk": order["milk_quantity"],
+                        "customer_id": customer_id,
+                        "order_id": order["order_id"],
+                    }
+                    filter_data.append(data_prepare)
+                    ids.append(customer_id)
+            return Response(filter_data)
         return Response({"message": "Record not found"})
