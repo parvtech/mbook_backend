@@ -7,7 +7,13 @@ from django.views.static import serve
 import oauth2_provider.views as oauth2_views
 
 from mbook_backend import settings
-from vendor.views import LoginView, LogoutView, ResendOtpView, VerifyOtpView
+from vendor.views import (
+    CalendarView,
+    LoginView,
+    LogoutView,
+    ResendOtpView,
+    VerifyOtpView,
+)
 
 urlpatterns = [
     # Admin app URLs.
@@ -20,6 +26,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("resend_otp/", ResendOtpView.as_view(), name="resend-otp"),
     path("verify_otp/", VerifyOtpView.as_view(), name="verify-otp"),
+    path("calendar/", CalendarView.as_view(), name="calendar"),
     # For static file
     url(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     url(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),

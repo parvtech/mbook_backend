@@ -1,3 +1,5 @@
+import json
+from collections import OrderedDict
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,11 +16,12 @@ from rest_framework.views import APIView
 from base.models import PublicId, TempOtp, User
 from base.pagination import custom_pagination
 from base.views import BaseView
-from customer.models import Customer
+from customer.models import Customer, CustomerOrder
 from mbook_backend.settings import USER_OTP_EXPIRED
 from vendor.models import Society, Vendor, VendorDeliveryPartner
 from vendor.serializers import (
     AddVendorSerializer,
+    CalendarSerializer,
     CreateDeliveryPartnerSerializer,
     CreateSocietySerializer,
     DeliveryPartnerListSerializer,
@@ -304,3 +307,22 @@ class DeliveryPartnerView(BaseView):
             return Response(
                 {"error": "Partner id does not exists."}, status.HTTP_404_NOT_FOUND
             )
+
+
+class CalendarView(BaseView):
+    def get(self, request):
+        month = request.GET.get("month")
+        year = request.GET.get("year")
+        customer_id = request.GET.get("customer_id")
+        if month and year:
+            order_data = CustomerOrder.objects.filter(
+                order_date__month=month,
+                order_date__year=year,
+                customer__public_id=customer_id,
+                vendor=vendor_obj(request.user.public_id),
+            )
+            result = json.loads(
+                json.dumps(CalendarSerializer(order_data, many=True).data)
+            )
+            return Response(result)
+        return Response({"message": "Record not found"})

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from customer.models import CustomerOrder
 from vendor.models import Society, Vendor, VendorDeliveryPartner
 
 
@@ -85,3 +86,9 @@ class CreateSocietySerializer(serializers.Serializer):
 
 class LoginSerializer(serializers.Serializer):
     mobile_no = serializers.CharField(max_length=15)
+
+
+class CalendarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerOrder
+        fields = "__all__"
