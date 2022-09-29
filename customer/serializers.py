@@ -22,8 +22,8 @@ class CustomerSerializer(serializers.Serializer):
 
 
 class CustomerListBySocietySerializer(serializers.ModelSerializer):
-    liter = serializers.FloatField()
-    price = serializers.FloatField()
+    liter = serializers.FloatField(source="milk_unit")
+    price = serializers.FloatField(source="unit_price")
     society_id = serializers.IntegerField(source="society.public_id")
 
     class Meta:

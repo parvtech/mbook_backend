@@ -105,10 +105,7 @@ class CustomerView(BaseView):
         if society_id:
             query.add(Q(society__public_id=society_id), query.connector)
         customers = (
-            Customer.objects.annotate(
-                liter=Value(0, output_field=FloatField()),
-                price=Value(0, output_field=FloatField()),
-            )
+            Customer.objects
             .filter(query)
             .order_by("-id")
         )
