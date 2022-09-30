@@ -1,3 +1,7 @@
+import calendar
+import datetime
+
+from dateutil.relativedelta import relativedelta
 from django.db import IntegrityError
 from django.db.models import FloatField, Q, Value
 
@@ -18,8 +22,29 @@ from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
 
 
+def daterange(date1, date2):
+    for n in range(int((date2 - date1).days) + 1):
+        yield date1 + datetime.timedelta(n)
+
+
 def create_customer_order(**data):
-    CustomerOrder.objects.create(public_id=PublicId.create_public_id(), **data)
+    date = data.get('order_date')
+    three_month = date + relativedelta(months=+3)
+    last_date_third_month = datetime.datetime(three_month.year, three_month.month,
+                                              calendar.monthrange(three_month.year, three_month.month)[1])
+    for dt in daterange(date, last_date_third_month.date()):
+        CustomerOrder.objects.create(
+            public_id=PublicId.create_public_id(),
+            customer=data.get('customer'),
+            vendor=data.get('vendor'),
+            delivery=data.get('delivery'),
+            shift=data.get('shift'),
+            milk_quantity=data.get('milk_quantity'),
+            price=data.get('price'),
+            status=data.get('status'),
+            order_date=dt,
+            is_payment=False,
+        )
 
 
 class CustomerView(BaseView):
@@ -158,3 +183,23 @@ class CustomerView(BaseView):
             return Response(
                 {"error": "Order already created with a given date and shift."}
             )
+
+
+class CustomerPaymentView(BaseView):
+    required_alternate_scopes = {
+        "POST": [["create"]],
+        "GET": [["read"]],
+        "PATCH": [["update"]],
+        "PUT": [["update"]],
+        "DELETE": [["delete"]],
+    }
+
+    def get(self, request):
+        breakpoint()
+        pagination = request.GET.get("pagination")
+        society_id = request.GET.get("society_id")
+        query = Q()
+        limit, offset = custom_pagination(request)
+        query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
+        if society_id:
+            query.add(Q(society__public_id=society_id), query.connector)

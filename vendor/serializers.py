@@ -1,3 +1,5 @@
+import calendar
+
 from django.db.models import Sum
 from django.utils.datetime_safe import datetime
 from rest_framework import serializers
@@ -72,15 +74,50 @@ class DeliveryPartnerListSerializer(serializers.ModelSerializer):
 
 class SocietySerializer(serializers.ModelSerializer):
     liter = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Society
-        fields = ["public_id", "name", "address", "pincode", "lat", "long", "liter"]
+        fields = ["public_id", "name", "address", "pincode", "lat", "long", "liter", "price"]
 
     def get_liter(self, obj):
-        date = datetime.now().date()
-        return CustomerOrder.objects.filter(vendor=obj.vendor, order_date=date).aggregate(Sum('milk_quantity')).get(
-            "milk_quantity__sum")
+        total_milk = 0
+        if self.context['request'].GET.get('date'):
+            date = datetime.strptime(self.context['request'].GET.get('date'), '%Y-%m').date()
+
+            last_date = calendar.monthrange(date.year, date.month)[1]
+            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor, order_date__day__gte=1,
+                                                           order_date__day__lte=last_date, order_date__month=date.month,
+                                                           is_payment=False,
+                                                           customer__society=obj)
+        else:
+            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor,
+                                                           is_payment=False,
+                                                           customer__society=obj)
+        for customer_order in customer_orders:
+            total_milk += customer_order.milk_quantity
+
+        return total_milk
+
+    def get_price(self, obj):
+        total_price = 0
+        if self.context['request'].GET.get('date'):
+            date = datetime.strptime(self.context['request'].GET.get('date'), '%Y-%m').date()
+
+            last_date = calendar.monthrange(date.year, date.month)[1]
+            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor, order_date__day__gte=1,
+                                                           order_date__day__lte=last_date, order_date__month=date.month,
+                                                           is_payment=False,
+                                                           customer__society=obj)
+        else:
+            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor,
+                                                           is_payment=False,
+                                                           customer__society=obj)
+        for customer_order in customer_orders:
+            price = customer_order.milk_quantity * customer_order.price
+            total_price += price
+
+        return total_price
 
 
 class CreateSocietySerializer(serializers.Serializer):

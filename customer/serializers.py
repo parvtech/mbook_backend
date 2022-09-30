@@ -25,6 +25,7 @@ class CustomerListBySocietySerializer(serializers.ModelSerializer):
     liter = serializers.FloatField(source="milk_unit")
     price = serializers.FloatField(source="unit_price")
     society_id = serializers.IntegerField(source="society.public_id")
+    is_payment = serializers.SerializerMethodField()
 
     class Meta:
         model = Customer
@@ -40,7 +41,15 @@ class CustomerListBySocietySerializer(serializers.ModelSerializer):
             "liter",
             "price",
             "society_id",
+            "is_payment"
         ]
+
+    def get_is_payment(self, obj):
+        is_payment = False
+        customer_orders = CustomerOrder.objects.filter(customer=obj)
+        for order in customer_orders:
+            is_payment = order.is_payment
+        return is_payment
 
 
 class CustomerListByShiftSerializer(serializers.ModelSerializer):

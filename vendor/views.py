@@ -273,7 +273,7 @@ class SocietyView(BaseView):
     @staticmethod
     def get(request):
         society = Society.objects.filter(vendor=vendor_obj(request.user.public_id))
-        serial_data = SocietySerializer(society, many=True).data
+        serial_data = SocietySerializer(society, many=True, context={"request": request}).data
         return Response(serial_data)
 
     @staticmethod

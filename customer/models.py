@@ -66,3 +66,4 @@ class CustomerOrder(BaseModel):
     price = models.FloatField()
     status = models.CharField(choices=STATUS, max_length=10, null=True, blank=True)
     order_date = models.DateField()
+    is_payment = models.BooleanField(default=False)
