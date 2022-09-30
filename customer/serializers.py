@@ -89,3 +89,12 @@ class CreateOrderSerializer(serializers.Serializer):
     milk_quantity = serializers.FloatField()
     price = serializers.FloatField()
     order_date = serializers.DateField()
+
+
+STATUS = ((1, "on_the_way"), (2, "delivered"))
+
+
+class UpdateCustomerOrderSerializer(serializers.Serializer):
+    is_payment = serializers.BooleanField(required=False)
+    status = serializers.ChoiceField(choices=STATUS, required=False)
+

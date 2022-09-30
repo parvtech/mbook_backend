@@ -16,7 +16,7 @@ from customer.serializers import (
     CreateOrderSerializer,
     CustomerListByShiftSerializer,
     CustomerListBySocietySerializer,
-    CustomerSerializer,
+    CustomerSerializer, UpdateCustomerOrderSerializer,
 )
 from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
@@ -185,7 +185,7 @@ class CustomerView(BaseView):
             )
 
 
-class CustomerPaymentView(BaseView):
+class CustomerPaymentStatusView(BaseView):
     required_alternate_scopes = {
         "POST": [["create"]],
         "GET": [["read"]],
@@ -194,12 +194,21 @@ class CustomerPaymentView(BaseView):
         "DELETE": [["delete"]],
     }
 
-    def get(self, request):
-        breakpoint()
-        pagination = request.GET.get("pagination")
-        society_id = request.GET.get("society_id")
-        query = Q()
-        limit, offset = custom_pagination(request)
-        query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
-        if society_id:
-            query.add(Q(society__public_id=society_id), query.connector)
+    def patch(self, request, public_id):
+        try:
+            serial_data = UpdateCustomerOrderSerializer(data=request.data)
+            if serial_data.is_valid(raise_exception=True):
+                serializer_data = serial_data.validated_data
+                customer_order = CustomerOrder.objects.get(public_id=public_id)
+                if request.data.get('is_payment'):
+                    customer_order.is_payment = serializer_data['is_payment']
+                if request.data.get('status'):
+                    customer_order.status = serializer_data['status']
+                customer_order.save()
+                return Response({"message": "Customer Order status updated successfully."})
+        except CustomerOrder.DoesNotExist:
+            return Response(
+                {"error": "Customer order does not exists."}
+            )
+
+

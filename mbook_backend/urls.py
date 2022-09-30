@@ -6,7 +6,7 @@ from django.views.static import serve
 
 import oauth2_provider.views as oauth2_views
 
-from customer.views import CustomerPaymentView
+from customer.views import CustomerPaymentStatusView
 from mbook_backend import settings
 from vendor.views import (
     CalendarView,
@@ -21,7 +21,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # For customer app URLs.
     path("customer/", include("customer.urls")),
-    path("customer_payment/", CustomerPaymentView.as_view(), name="customer-payment"),
+    path("customer_status/<str:public_id>/", CustomerPaymentStatusView.as_view(), name="payment_status"),
     # For vendor app URLs.
     path("vendor/", include("vendor.urls")),
     path("login/", LoginView.as_view(), name="login"),
