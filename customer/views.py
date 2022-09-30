@@ -99,11 +99,14 @@ class CustomerView(BaseView):
         society_id = request.GET.get("society_id")
         shift = request.GET.get("shift")
         order_date = request.GET.get("order_date")
+        customer = request.GET.get("customer")
         query = Q()
         limit, offset = custom_pagination(request)
         query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
         if society_id:
             query.add(Q(society__public_id=society_id), query.connector)
+        if customer:
+            query = Q()
         customers = (
             Customer.objects
             .filter(query)
