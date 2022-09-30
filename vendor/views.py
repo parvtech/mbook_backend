@@ -189,6 +189,11 @@ class VerifyOtpView(APIView):
                 data = token.json()
                 data["name"] = user.first_name
                 data["role"] = role
+                try:
+                    avatar = request.build_absolute_uri(user.avatar.url)
+                except:
+                    avatar = None
+                data["avatar"] = avatar
                 data["access_token"] = (
                         data.pop("token_type") + " " + data["access_token"]
                 )
@@ -325,12 +330,15 @@ class CalendarView(BaseView):
             )
             filter_data = []
             ids = []
+            date = []
             for order in result:
                 customer_id = order["customer_id"]
-                if customer_id in ids:
-                    index = ids.index(customer_id)
+                order_date = order["order_date"]
+                if order_date in date:
+                    index = date.index(order_date)
                     update_data = filter_data[index]
                     old_milk = update_data["milk"]
+
                     update_data["milk"] = old_milk + order["milk_quantity"]
                 else:
                     data_prepare = {
@@ -340,6 +348,6 @@ class CalendarView(BaseView):
                         "order_id": order["order_id"],
                     }
                     filter_data.append(data_prepare)
-                    ids.append(customer_id)
+                    date.append(order["order_date"])
             return Response(filter_data)
         return Response({"message": "Record not found"})
