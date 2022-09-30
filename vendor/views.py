@@ -351,3 +351,27 @@ class CalendarView(BaseView):
                     date.append(order["order_date"])
             return Response(filter_data)
         return Response({"message": "Record not found"})
+
+
+class DetailMilkQuantity(BaseView):
+
+    def get(self, request):
+        try:
+            order_date = request.GET.get('order_date')
+            customer_id = request.GET.get('customer_id')
+            customer_orders = CustomerOrder.objects.filter(
+                order_date=order_date,
+                customer__public_id=customer_id,
+            )
+            for order in customer_orders:
+                if order.shift == 'morning':
+                    morning = order.milk_quantity
+                else:
+                    evening = order.milk_quantity
+            result = {"morning": morning,
+                      "evening": evening}
+            return Response(result)
+        except CustomerOrder.DoesNotExist:
+            return Response(
+                {"error": "Customer Order does not exists."}, status.HTTP_404_NOT_FOUND
+            )

@@ -139,3 +139,20 @@ class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerOrder
         fields = ["customer_id", "order_id", "order_date", "milk_quantity"]
+
+
+class CalendarDetailSerializer(serializers.ModelSerializer):
+    customer_id = serializers.IntegerField(source="customer.public_id")
+    order_id = serializers.IntegerField(source="public_id")
+
+    class Meta:
+        model = CustomerOrder
+        fields = ["customer_id", "order_id", "shift", "order_date", "milk_quantity", "price"]
+
+
+
+class OrderDetailSerializer(serializers.Serializer):
+    date = serializers.IntegerField()
+    morning_milk = serializers.SerializerMethodField()
+    evening_milk = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
