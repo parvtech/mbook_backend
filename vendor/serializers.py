@@ -130,6 +130,9 @@ class CreateSocietySerializer(serializers.Serializer):
 
 class LoginSerializer(serializers.Serializer):
     mobile_no = serializers.CharField(max_length=15)
+    user_type = serializers.ChoiceField(choices=(('vendor', 'vendor'),
+                                                 ('customer', 'customer'),
+                                                 ('delivery_partner', 'delivery_partner')), required=True)
 
 
 class CalendarSerializer(serializers.ModelSerializer):
@@ -138,7 +141,7 @@ class CalendarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerOrder
-        fields = ["customer_id", "order_id", "order_date", "milk_quantity"]
+        fields = ["customer_id", "order_id", "order_date", "milk_quantity", "price"]
 
 
 class CalendarDetailSerializer(serializers.ModelSerializer):
@@ -150,9 +153,39 @@ class CalendarDetailSerializer(serializers.ModelSerializer):
         fields = ["customer_id", "order_id", "shift", "order_date", "milk_quantity", "price"]
 
 
-
 class OrderDetailSerializer(serializers.Serializer):
     date = serializers.IntegerField()
     morning_milk = serializers.SerializerMethodField()
     evening_milk = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
+
+
+class GetMonthlyBillDetailSerializer(serializers.ModelSerializer):
+    milk_quantity = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomerOrder
+        fields = ['order_date', 'milk_quantity', 'price']
+
+    def get_milk_quantity(self, obj):
+        morning_milk = None
+        evening_milk = None
+        orders = CustomerOrder.objects.filter(order_date=obj.order_date, customer=obj.customer)
+        for order in orders:
+            if order.shift == 'morning':
+                morning_milk = order.milk_quantity
+            else:
+                evening_milk = order.milk_quantity
+            result = {'morning_milk': morning_milk,
+                      'evening_milk': evening_milk}
+        return result
+
+    def get_price(self, obj):
+        price = 0
+        orders = CustomerOrder.objects.filter(order_date=obj.order_date, customer=obj.customer)
+        for order in orders:
+            price += order.milk_quantity * order.price
+
+        return price
+

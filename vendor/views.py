@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import FloatField, IntegerField, Value
+from django.db.models import FloatField, IntegerField, Value, Sum
 from django.utils import timezone
 
 import requests
@@ -30,7 +30,7 @@ from vendor.serializers import (
     ProfileDetailSerializer,
     ResendOtpSerializer,
     SocietySerializer,
-    VerifyOtpSerializer,
+    VerifyOtpSerializer, GetMonthlyBillDetailSerializer,
 )
 
 
@@ -100,12 +100,24 @@ class LoginView(APIView):
                 TempOtp.objects.create(
                     public_id=PublicId.create_public_id(), user=user_obj, otp=0000
                 )
+                if data.get('user_type') == 'vendor':
+                    Vendor.objects.get(public_id=user_obj.public_id)
+                elif data.get('user_type') == 'customer':
+                    Customer.objects.get(public_id=user_obj.public_id)
+                elif data.get('user_type') == 'delivery_partner':
+                    VendorDeliveryPartner.objects.get(public_id=user_obj.public_id)
                 res = {
                     "public_id": user_obj.public_id,
                     "message": "Otp send successfully.",
                 }
                 return Response(res, status=200)
-        except ObjectDoesNotExist:
+
+        except (Vendor.DoesNotExist, Customer.DoesNotExist, VendorDeliveryPartner.DoesNotExist):
+            return Response(
+                {"error": "Mobile number is already associated with the other user type."},
+                status.HTTP_400_BAD_REQUEST,
+            )
+        except User.DoesNotExist:
             return Response(
                 {"error": "This mobile number doesn't exists."},
                 status.HTTP_400_BAD_REQUEST,
@@ -222,11 +234,12 @@ class VendorDetailView(BaseView):
                 data = serial_data.validated_data
                 vendor = vendor_obj(request.user.public_id)
                 for key, value in data.items():
-                    try:
-                        setattr(vendor, key, value)
-                    except:
-                        vendor.first_name = value
-                vendor.save()
+                    setattr(request.user, key, value)
+                    if data.get('dairy_name'):
+                        vendor.dairy_name = data.get('dairy_name')
+                        vendor.save()
+                    request.user.first_name = value
+                request.user.save()
                 return Response({"message": "Profile updated."})
         except IntegrityError:
             return Response(
@@ -354,9 +367,10 @@ class CalendarView(BaseView):
 
 
 class DetailMilkQuantity(BaseView):
-
     def get(self, request):
         try:
+            morning = None
+            evening = None
             order_date = request.GET.get('order_date')
             customer_id = request.GET.get('customer_id')
             customer_orders = CustomerOrder.objects.filter(
@@ -366,11 +380,50 @@ class DetailMilkQuantity(BaseView):
             for order in customer_orders:
                 if order.shift == 'morning':
                     morning = order.milk_quantity
+                    morning_order_public_id = order.public_id
                 else:
                     evening = order.milk_quantity
+                    evening_order_public_id = order.public_id
             result = {"morning": morning,
-                      "evening": evening}
+                      "morning_order_public_id": morning_order_public_id,
+                      "evening": evening,
+                      "evening_order_public_id": evening_order_public_id}
             return Response(result)
+        except CustomerOrder.DoesNotExist:
+            return Response(
+                {"error": "Customer Order does not exists."}, status.HTTP_404_NOT_FOUND
+            )
+
+
+class MonthlyBillDetail(BaseView):
+    def get(self, request, customer_id):
+        try:
+            order_date = datetime.strptime(request.GET.get('order_date'), '%Y-%m').date()
+            customer_orders = CustomerOrder.objects.filter(
+                order_date__month=order_date.month,
+                order_date__year=order_date.year,
+                customer__public_id=customer_id,
+            ).order_by('order_date')
+            total_milk = customer_orders.aggregate(Sum("milk_quantity")).get("milk_quantity__sum")
+            total_price = 0
+            for customer_order in customer_orders:
+                price = customer_order.milk_quantity * customer_order.price
+                total_price += price
+            result = json.loads(json.dumps(GetMonthlyBillDetailSerializer(customer_orders, many=True).data))
+            prepare_data = []
+            order_dates = []
+            for odr in result:
+                odr_date = odr["order_date"]
+                if not odr_date in order_dates:
+                    prepare_data.append(odr)
+                    order_dates.append(odr["order_date"])
+            fresh_response = {
+                "total_milk": total_milk or 0,
+                "total_price": total_price,
+                "month": prepare_data
+
+            }
+            return Response(fresh_response)
         except CustomerOrder.DoesNotExist:
             return Response(
                 {"error": "Customer Order does not exists."}, status.HTTP_404_NOT_FOUND

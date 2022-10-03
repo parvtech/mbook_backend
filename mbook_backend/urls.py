@@ -13,7 +13,7 @@ from vendor.views import (
     LoginView,
     LogoutView,
     ResendOtpView,
-    VerifyOtpView, DetailMilkQuantity,
+    VerifyOtpView, DetailMilkQuantity, MonthlyBillDetail, VendorDetailView,
 )
 
 urlpatterns = [
@@ -29,7 +29,9 @@ urlpatterns = [
     path("resend_otp/", ResendOtpView.as_view(), name="resend-otp"),
     path("verify_otp/", VerifyOtpView.as_view(), name="verify-otp"),
     path("calendar/", CalendarView.as_view(), name="calendar"),
-    path("detail_milk_quantity/", DetailMilkQuantity.as_view(), name="detail_milk_quantity"),
+    path("profile/", VendorDetailView.as_view(), name="vendor-profile"),
+    path("detail_milk_quantity/", DetailMilkQuantity.as_view(), name="milk"),
+    path("monthly_bill_detail/<int:customer_id>/", MonthlyBillDetail.as_view(), name="detail_milk_quantity"),
     # For static file
     url(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     url(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),
