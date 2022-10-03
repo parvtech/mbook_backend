@@ -98,3 +98,6 @@ class UpdateCustomerOrderSerializer(serializers.Serializer):
     is_payment = serializers.BooleanField(required=False)
     status = serializers.ChoiceField(choices=STATUS, required=False)
 
+
+class UpdateCustomerOrderMilkSerializer(serializers.Serializer):
+    milk_quantity = serializers.FloatField(required=False)

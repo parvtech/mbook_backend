@@ -16,7 +16,7 @@ from customer.serializers import (
     CreateOrderSerializer,
     CustomerListByShiftSerializer,
     CustomerListBySocietySerializer,
-    CustomerSerializer, UpdateCustomerOrderSerializer,
+    CustomerSerializer, UpdateCustomerOrderSerializer, UpdateCustomerOrderMilkSerializer,
 )
 from vendor.models import Society, VendorDeliveryPartner
 from vendor.views import vendor_obj
@@ -73,6 +73,8 @@ class CustomerView(BaseView):
                     seller=vendor_obj(request.user.public_id),
                     **data
                 )
+                customer.set_password("qwerty")
+                customer.save()
                 order_data = {
                     "customer": customer,
                     "vendor": customer.seller,
@@ -212,3 +214,18 @@ class CustomerPaymentStatusView(BaseView):
             )
 
 
+class CustomerOrderView(BaseView):
+    def patch(self, request, customer_order_id):
+        try:
+            serial_data = UpdateCustomerOrderMilkSerializer(data=request.data)
+            if serial_data.is_valid(raise_exception=True):
+                serializer_data = serial_data.validated_data
+            customer_order = CustomerOrder.objects.get(public_id=customer_order_id)
+            if request.data.get('milk_quantity'):
+                customer_order.milk_quantity = serializer_data['milk_quantity']
+            customer_order.save()
+            return Response({"message": "Customer Order milk quantity updated successfully."})
+        except CustomerOrder.DoesNotExist:
+            return Response(
+                {"error": "Customer order does not exists."}
+            )

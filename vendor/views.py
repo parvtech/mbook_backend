@@ -47,9 +47,9 @@ class DashboardView(BaseView):
                 seller=vendor
             ).count(),
             "society": Society.objects.filter(vendor=vendor).count(),
-            "today_delivered_milk": 0,
+            "today_delivered_milk": CustomerOrder.objects.filter(vendor=vendor, status=2).aggregate(
+                Sum('milk_quantity')).get("milk_quantity__sum") or 0
         }
-        print("Hello")
         return Response(data)
 
 
@@ -187,7 +187,7 @@ class VerifyOtpView(APIView):
                         client_type="confidential",
                         name=user.username,
                     )
-                data = {
+                auth_data = {
                     "username": user.username,
                     "password": "qwerty",
                     "grant_type": "password",
@@ -196,23 +196,23 @@ class VerifyOtpView(APIView):
                 }
                 token = requests.post(
                     request.build_absolute_uri("/") + "o/token/",
-                    data=data,
-                )
-                data = token.json()
-                data["name"] = user.first_name
-                data["role"] = role
+                    data=auth_data,
+                    )
+                res_data = token.json()
+                res_data["name"] = user.first_name
+                res_data["role"] = role
                 try:
                     avatar = request.build_absolute_uri(user.avatar.url)
                 except:
                     avatar = None
-                data["avatar"] = avatar
-                data["access_token"] = (
-                        data.pop("token_type") + " " + data["access_token"]
+                res_data["avatar"] = avatar
+                res_data["access_token"] = (
+                        res_data.pop("token_type") + " " + res_data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
                 temp_otp_obj.delete()
-                return Response(data, status=200)
+                return Response(res_data, status=200)
         except TempOtp.DoesNotExist:
             return Response(
                 {"error": "Please enter a valid OTP."}, status.HTTP_400_BAD_REQUEST
