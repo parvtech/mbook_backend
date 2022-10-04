@@ -148,7 +148,6 @@ class VerifyOtpView(APIView):
             serial_data = VerifyOtpSerializer(data=request.data)
             if serial_data.is_valid(raise_exception=True):
                 data = serial_data.validated_data
-                role = None
                 temp_otp_obj = TempOtp.objects.filter(
                     user__public_id=data["public_id"], otp=data["otp"]
                 ).last()
@@ -159,13 +158,13 @@ class VerifyOtpView(APIView):
                         },
                         status.HTTP_400_BAD_REQUEST,
                     )
-                if Vendor.objects.filter(public_id=data["public_id"]).exists:
+                if Vendor.objects.filter(public_id=data["public_id"]).exists():
                     role = "vendor"
-                elif Customer.objects.filter(public_id=data["public_id"]).exists:
+                elif Customer.objects.filter(public_id=data["public_id"]).exists():
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
                         public_id=data["public_id"]
-                ).exists:
+                ).exists():
                     role = "delivery"
                 # check otp expiry time
                 expiry_date = temp_otp_obj.created_at + timedelta(
@@ -256,13 +255,15 @@ class AddDeliveryPartnerView(BaseView):
             if serial_data.is_valid(raise_exception=True):
                 data = serial_data.validated_data
                 public = PublicId.create_public_id()
-                VendorDeliveryPartner.objects.create(
+                delivery_partner = VendorDeliveryPartner.objects.create(
                     public_id=public,
                     first_name=data["name"],
                     mobile_no=data["mobile_no"],
                     username=public,
                     seller=vendor_obj(request.user.public_id),
                 )
+                delivery_partner.set_password('qwerty')
+                delivery_partner.save()
                 return Response(
                     {"message": "Delivery partner created successfully."},
                     status.HTTP_201_CREATED,

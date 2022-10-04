@@ -130,9 +130,9 @@ class CreateSocietySerializer(serializers.Serializer):
 
 class LoginSerializer(serializers.Serializer):
     mobile_no = serializers.CharField(max_length=15)
-    user_type = serializers.ChoiceField(choices=(('vendor', 'vendor'),
-                                                 ('customer', 'customer'),
-                                                 ('delivery_partner', 'delivery_partner')), required=True)
+    # user_type = serializers.ChoiceField(choices=(('vendor', 'vendor'),
+    #                                              ('customer', 'customer'),
+    #                                              ('delivery_partner', 'delivery_partner')), required=True)
 
 
 class CalendarSerializer(serializers.ModelSerializer):
