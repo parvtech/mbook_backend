@@ -41,7 +41,7 @@ class CustomerListBySocietySerializer(serializers.ModelSerializer):
             "liter",
             "price",
             "society_id",
-            "is_payment"
+            "is_payment",
         ]
 
     def get_is_payment(self, obj):

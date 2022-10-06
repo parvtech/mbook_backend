@@ -24,8 +24,16 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # For customer app URLs.
     path("customer/", include("customer.urls")),
-    path("customer_status/<str:public_id>/", CustomerPaymentStatusView.as_view(), name="payment_status"),
-    path("customer_order/<int:customer_order_id>/", CustomerOrderView.as_view(), name="customer_order"),
+    path(
+        "customer_status/<str:public_id>/",
+        CustomerPaymentStatusView.as_view(),
+        name="payment_status",
+    ),
+    path(
+        "customer_order/<int:customer_order_id>/",
+        CustomerOrderView.as_view(),
+        name="customer_order",
+    ),
     # For vendor app URLs.
     path("vendor/", include("vendor.urls")),
     path("login/", LoginView.as_view(), name="login"),
@@ -35,7 +43,11 @@ urlpatterns = [
     path("calendar/", CalendarView.as_view(), name="calendar"),
     path("profile/", VendorDetailView.as_view(), name="vendor-profile"),
     path("detail_milk_quantity/", DetailMilkQuantity.as_view(), name="milk"),
-    path("monthly_bill_detail/<int:customer_id>/", MonthlyBillDetail.as_view(), name="detail_milk_quantity"),
+    path(
+        "monthly_bill_detail/<int:customer_id>/",
+        MonthlyBillDetail.as_view(),
+        name="detail_milk_quantity",
+    ),
     # For static file
     url(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     url(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),

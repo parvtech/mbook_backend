@@ -30,20 +30,23 @@ def daterange(date1, date2):
 
 
 def create_customer_order(**data):
-    date = data.get('order_date')
+    date = data.get("order_date")
     three_month = date + relativedelta(months=+3)
-    last_date_third_month = datetime.datetime(three_month.year, three_month.month,
-                                              calendar.monthrange(three_month.year, three_month.month)[1])
+    last_date_third_month = datetime.datetime(
+        three_month.year,
+        three_month.month,
+        calendar.monthrange(three_month.year, three_month.month)[1],
+    )
     for dt in daterange(date, last_date_third_month.date()):
         CustomerOrder.objects.create(
             public_id=PublicId.create_public_id(),
-            customer=data.get('customer'),
-            vendor=data.get('vendor'),
-            delivery=data.get('delivery'),
-            shift=data.get('shift'),
-            milk_quantity=data.get('milk_quantity'),
-            price=data.get('price'),
-            status=data.get('status'),
+            customer=data.get("customer"),
+            vendor=data.get("vendor"),
+            delivery=data.get("delivery"),
+            shift=data.get("shift"),
+            milk_quantity=data.get("milk_quantity"),
+            price=data.get("price"),
+            status=data.get("status"),
             order_date=dt,
             is_payment=False,
         )
@@ -134,26 +137,30 @@ class CustomerView(BaseView):
         if vendor_obj(request.user.public_id):
             query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
         else:
-            query.add(Q(partner=vendor_delivery_obj(request.user.public_id)), query.connector)
+            query.add(
+                Q(partner=vendor_delivery_obj(request.user.public_id)), query.connector
+            )
         if society_id:
             query.add(Q(society__public_id=society_id), query.connector)
 
         # if customer:
         #     query = Q()
-        customers = (
-            Customer.objects
-            .filter(query)
-            .order_by("-id")
-        )
+        customers = Customer.objects.filter(query).order_by("-id")
         if shift and society_id and order_date:
             query = Q()
-            query.add(Q(order_date=order_date) &
-                      Q(customer__society__public_id=society_id) &
-                      Q(shift=shift), query.connector)
+            query.add(
+                Q(order_date=order_date)
+                & Q(customer__society__public_id=society_id)
+                & Q(shift=shift),
+                query.connector,
+            )
             if vendor_obj(request.user.public_id):
                 query.add(Q(vendor=vendor_obj(request.user.public_id)), query.connector)
             else:
-                query.add(Q(delivery=vendor_delivery_obj(request.user.public_id)), query.connector)
+                query.add(
+                    Q(delivery=vendor_delivery_obj(request.user.public_id)),
+                    query.connector,
+                )
             customers = CustomerOrder.objects.filter(query).order_by("-id")
             response = customers[offset:limit] if pagination == "true" else customers
             customers_list = CustomerListByShiftSerializer(response, many=True).data
@@ -212,16 +219,16 @@ class CustomerPaymentStatusView(BaseView):
             if serial_data.is_valid(raise_exception=True):
                 serializer_data = serial_data.validated_data
                 customer_order = CustomerOrder.objects.get(public_id=public_id)
-                if request.data.get('is_payment'):
-                    customer_order.is_payment = serializer_data['is_payment']
-                if request.data.get('status'):
-                    customer_order.status = serializer_data['status']
+                if request.data.get("is_payment"):
+                    customer_order.is_payment = serializer_data["is_payment"]
+                if request.data.get("status"):
+                    customer_order.status = serializer_data["status"]
                 customer_order.save()
-                return Response({"message": "Customer Order status updated successfully."})
+                return Response(
+                    {"message": "Customer Order status updated successfully."}
+                )
         except CustomerOrder.DoesNotExist:
-            return Response(
-                {"error": "Customer order does not exists."}
-            )
+            return Response({"error": "Customer order does not exists."})
 
 
 class CustomerOrderView(BaseView):
@@ -231,11 +238,11 @@ class CustomerOrderView(BaseView):
             if serial_data.is_valid(raise_exception=True):
                 serializer_data = serial_data.validated_data
             customer_order = CustomerOrder.objects.get(public_id=customer_order_id)
-            if request.data.get('milk_quantity'):
-                customer_order.milk_quantity = serializer_data['milk_quantity']
+            if request.data.get("milk_quantity"):
+                customer_order.milk_quantity = serializer_data["milk_quantity"]
             customer_order.save()
-            return Response({"message": "Customer Order milk quantity updated successfully."})
-        except CustomerOrder.DoesNotExist:
             return Response(
-                {"error": "Customer order does not exists."}
+                {"message": "Customer Order milk quantity updated successfully."}
             )
+        except CustomerOrder.DoesNotExist:
+            return Response({"error": "Customer order does not exists."})

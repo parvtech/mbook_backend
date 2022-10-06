@@ -58,8 +58,12 @@ class DashboardView(BaseView):
                 seller=vendor
             ).count(),
             "society": Society.objects.filter(vendor=vendor).count(),
-            "today_delivered_milk": CustomerOrder.objects.filter(vendor=vendor, status=2).aggregate(
-                Sum('milk_quantity')).get("milk_quantity__sum") or 0
+            "today_delivered_milk": CustomerOrder.objects.filter(
+                vendor=vendor, status=2
+            )
+            .aggregate(Sum("milk_quantity"))
+            .get("milk_quantity__sum")
+            or 0,
         }
         return Response(data)
 
@@ -111,11 +115,11 @@ class LoginView(APIView):
                 TempOtp.objects.create(
                     public_id=PublicId.create_public_id(), user=user_obj, otp=0000
                 )
-                if data.get('user_type') == 'vendor':
+                if data.get("user_type") == "vendor":
                     Vendor.objects.get(public_id=user_obj.public_id)
-                elif data.get('user_type') == 'customer':
+                elif data.get("user_type") == "customer":
                     Customer.objects.get(public_id=user_obj.public_id)
-                elif data.get('user_type') == 'delivery_partner':
+                elif data.get("user_type") == "delivery_partner":
                     VendorDeliveryPartner.objects.get(public_id=user_obj.public_id)
                 res = {
                     "public_id": user_obj.public_id,
@@ -123,9 +127,15 @@ class LoginView(APIView):
                 }
                 return Response(res, status=200)
 
-        except (Vendor.DoesNotExist, Customer.DoesNotExist, VendorDeliveryPartner.DoesNotExist):
+        except (
+            Vendor.DoesNotExist,
+            Customer.DoesNotExist,
+            VendorDeliveryPartner.DoesNotExist,
+        ):
             return Response(
-                {"error": "Mobile number is already associated with the other user type."},
+                {
+                    "error": "Mobile number is already associated with the other user type."
+                },
                 status.HTTP_400_BAD_REQUEST,
             )
         except User.DoesNotExist:
@@ -174,7 +184,7 @@ class VerifyOtpView(APIView):
                 elif Customer.objects.filter(public_id=data["public_id"]).exists():
                     role = "customer"
                 elif VendorDeliveryPartner.objects.filter(
-                        public_id=data["public_id"]
+                    public_id=data["public_id"]
                 ).exists():
                     role = "delivery"
                 # check otp expiry time
@@ -217,7 +227,7 @@ class VerifyOtpView(APIView):
                     avatar = None
                 res_data["avatar"] = avatar
                 res_data["access_token"] = (
-                        res_data.pop("token_type") + " " + res_data["access_token"]
+                    res_data.pop("token_type") + " " + res_data["access_token"]
                 )
                 user.is_verify = True
                 user.save()
@@ -245,8 +255,8 @@ class VendorDetailView(BaseView):
                 vendor = vendor_obj(request.user.public_id)
                 for key, value in data.items():
                     setattr(request.user, key, value)
-                    if data.get('dairy_name'):
-                        vendor.dairy_name = data.get('dairy_name')
+                    if data.get("dairy_name"):
+                        vendor.dairy_name = data.get("dairy_name")
                         vendor.save()
                     request.user.first_name = value
                 request.user.save()
@@ -273,7 +283,7 @@ class AddDeliveryPartnerView(BaseView):
                     username=public,
                     seller=vendor_obj(request.user.public_id),
                 )
-                delivery_partner.set_password('qwerty')
+                delivery_partner.set_password("qwerty")
                 delivery_partner.save()
                 return Response(
                     {"message": "Delivery partner created successfully."},
@@ -303,7 +313,9 @@ class SocietyView(BaseView):
     @staticmethod
     def get(request):
         society = Society.objects.filter(vendor=vendor_obj(request.user.public_id))
-        serial_data = SocietySerializer(society, many=True, context={"request": request}).data
+        serial_data = SocietySerializer(
+            society, many=True, context={"request": request}
+        ).data
         return Response(serial_data)
 
     @staticmethod
@@ -383,23 +395,25 @@ class DetailMilkQuantity(BaseView):
         try:
             morning = None
             evening = None
-            order_date = request.GET.get('order_date')
-            customer_id = request.GET.get('customer_id')
+            order_date = request.GET.get("order_date")
+            customer_id = request.GET.get("customer_id")
             customer_orders = CustomerOrder.objects.filter(
                 order_date=order_date,
                 customer__public_id=customer_id,
             )
             for order in customer_orders:
-                if order.shift == 'morning':
+                if order.shift == "morning":
                     morning = order.milk_quantity
                     morning_order_public_id = order.public_id
                 else:
                     evening = order.milk_quantity
                     evening_order_public_id = order.public_id
-            result = {"morning": morning,
-                      "morning_order_public_id": morning_order_public_id,
-                      "evening": evening,
-                      "evening_order_public_id": evening_order_public_id}
+            result = {
+                "morning": morning,
+                "morning_order_public_id": morning_order_public_id,
+                "evening": evening,
+                "evening_order_public_id": evening_order_public_id,
+            }
             return Response(result)
         except CustomerOrder.DoesNotExist:
             return Response(
@@ -410,18 +424,26 @@ class DetailMilkQuantity(BaseView):
 class MonthlyBillDetail(BaseView):
     def get(self, request, customer_id):
         try:
-            order_date = datetime.strptime(request.GET.get('order_date'), '%Y-%m').date()
+            order_date = datetime.strptime(
+                request.GET.get("order_date"), "%Y-%m"
+            ).date()
             customer_orders = CustomerOrder.objects.filter(
                 order_date__month=order_date.month,
                 order_date__year=order_date.year,
                 customer__public_id=customer_id,
-            ).order_by('order_date')
-            total_milk = customer_orders.aggregate(Sum("milk_quantity")).get("milk_quantity__sum")
+            ).order_by("order_date")
+            total_milk = customer_orders.aggregate(Sum("milk_quantity")).get(
+                "milk_quantity__sum"
+            )
             total_price = 0
             for customer_order in customer_orders:
                 price = customer_order.milk_quantity * customer_order.price
                 total_price += price
-            result = json.loads(json.dumps(GetMonthlyBillDetailSerializer(customer_orders, many=True).data))
+            result = json.loads(
+                json.dumps(
+                    GetMonthlyBillDetailSerializer(customer_orders, many=True).data
+                )
+            )
             prepare_data = []
             order_dates = []
             for odr in result:
@@ -432,8 +454,7 @@ class MonthlyBillDetail(BaseView):
             fresh_response = {
                 "total_milk": total_milk or 0,
                 "total_price": total_price,
-                "month": prepare_data
-
+                "month": prepare_data,
             }
             return Response(fresh_response)
         except CustomerOrder.DoesNotExist:

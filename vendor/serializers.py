@@ -79,22 +79,37 @@ class SocietySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Society
-        fields = ["public_id", "name", "address", "pincode", "lat", "long", "liter", "price"]
+        fields = [
+            "public_id",
+            "name",
+            "address",
+            "pincode",
+            "lat",
+            "long",
+            "liter",
+            "price",
+        ]
 
     def get_liter(self, obj):
         total_milk = 0
-        if self.context['request'].GET.get('date'):
-            date = datetime.strptime(self.context['request'].GET.get('date'), '%Y-%m').date()
+        if self.context["request"].GET.get("date"):
+            date = datetime.strptime(
+                self.context["request"].GET.get("date"), "%Y-%m"
+            ).date()
 
             last_date = calendar.monthrange(date.year, date.month)[1]
-            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor, order_date__day__gte=1,
-                                                           order_date__day__lte=last_date, order_date__month=date.month,
-                                                           is_payment=False,
-                                                           customer__society=obj)
+            customer_orders = CustomerOrder.objects.filter(
+                vendor=obj.vendor,
+                order_date__day__gte=1,
+                order_date__day__lte=last_date,
+                order_date__month=date.month,
+                is_payment=False,
+                customer__society=obj,
+            )
         else:
-            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor,
-                                                           is_payment=False,
-                                                           customer__society=obj)
+            customer_orders = CustomerOrder.objects.filter(
+                vendor=obj.vendor, is_payment=False, customer__society=obj
+            )
         for customer_order in customer_orders:
             total_milk += customer_order.milk_quantity
 
@@ -102,18 +117,24 @@ class SocietySerializer(serializers.ModelSerializer):
 
     def get_price(self, obj):
         total_price = 0
-        if self.context['request'].GET.get('date'):
-            date = datetime.strptime(self.context['request'].GET.get('date'), '%Y-%m').date()
+        if self.context["request"].GET.get("date"):
+            date = datetime.strptime(
+                self.context["request"].GET.get("date"), "%Y-%m"
+            ).date()
 
             last_date = calendar.monthrange(date.year, date.month)[1]
-            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor, order_date__day__gte=1,
-                                                           order_date__day__lte=last_date, order_date__month=date.month,
-                                                           is_payment=False,
-                                                           customer__society=obj)
+            customer_orders = CustomerOrder.objects.filter(
+                vendor=obj.vendor,
+                order_date__day__gte=1,
+                order_date__day__lte=last_date,
+                order_date__month=date.month,
+                is_payment=False,
+                customer__society=obj,
+            )
         else:
-            customer_orders = CustomerOrder.objects.filter(vendor=obj.vendor,
-                                                           is_payment=False,
-                                                           customer__society=obj)
+            customer_orders = CustomerOrder.objects.filter(
+                vendor=obj.vendor, is_payment=False, customer__society=obj
+            )
         for customer_order in customer_orders:
             price = customer_order.milk_quantity * customer_order.price
             total_price += price
@@ -151,7 +172,14 @@ class CalendarDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerOrder
-        fields = ["customer_id", "order_id", "shift", "order_date", "milk_quantity", "price"]
+        fields = [
+            "customer_id",
+            "order_id",
+            "shift",
+            "order_date",
+            "milk_quantity",
+            "price",
+        ]
 
 
 class OrderDetailSerializer(serializers.Serializer):
@@ -167,26 +195,28 @@ class GetMonthlyBillDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerOrder
-        fields = ['order_date', 'milk_quantity', 'price']
+        fields = ["order_date", "milk_quantity", "price"]
 
     def get_milk_quantity(self, obj):
         morning_milk = None
         evening_milk = None
-        orders = CustomerOrder.objects.filter(order_date=obj.order_date, customer=obj.customer)
+        orders = CustomerOrder.objects.filter(
+            order_date=obj.order_date, customer=obj.customer
+        )
         for order in orders:
-            if order.shift == 'morning':
+            if order.shift == "morning":
                 morning_milk = order.milk_quantity
             else:
                 evening_milk = order.milk_quantity
-            result = {'morning_milk': morning_milk,
-                      'evening_milk': evening_milk}
+            result = {"morning_milk": morning_milk, "evening_milk": evening_milk}
         return result
 
     def get_price(self, obj):
         price = 0
-        orders = CustomerOrder.objects.filter(order_date=obj.order_date, customer=obj.customer)
+        orders = CustomerOrder.objects.filter(
+            order_date=obj.order_date, customer=obj.customer
+        )
         for order in orders:
             price += order.milk_quantity * order.price
 
         return price
-

@@ -19,5 +19,4 @@ urlpatterns = [
         name="delivery-partner-detail",
     ),
     path("society/", SocietyView.as_view(), name="vendor-society"),
-
 ]
