@@ -1,10 +1,10 @@
 import calendar
 import datetime
 
-from dateutil.relativedelta import relativedelta
 from django.db import IntegrityError
 from django.db.models import FloatField, Q, Value
 
+from dateutil.relativedelta import relativedelta
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -16,10 +16,12 @@ from customer.serializers import (
     CreateOrderSerializer,
     CustomerListByShiftSerializer,
     CustomerListBySocietySerializer,
-    CustomerSerializer, UpdateCustomerOrderSerializer, UpdateCustomerOrderMilkSerializer,
+    CustomerSerializer,
+    UpdateCustomerOrderMilkSerializer,
+    UpdateCustomerOrderSerializer,
 )
-from vendor.models import Society, VendorDeliveryPartner
-from vendor.views import vendor_obj
+from vendor.models import Society, Vendor, VendorDeliveryPartner
+from vendor.views import vendor_delivery_obj, vendor_obj
 
 
 def daterange(date1, date2):
@@ -126,25 +128,33 @@ class CustomerView(BaseView):
         society_id = request.GET.get("society_id")
         shift = request.GET.get("shift")
         order_date = request.GET.get("order_date")
-        customer = request.GET.get("customer")
+        # customer = request.GET.get("customer")
         query = Q()
         limit, offset = custom_pagination(request)
-        query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
+        if vendor_obj(request.user.public_id):
+            query.add(Q(seller=vendor_obj(request.user.public_id)), query.connector)
+        else:
+            query.add(Q(partner=vendor_delivery_obj(request.user.public_id)), query.connector)
         if society_id:
             query.add(Q(society__public_id=society_id), query.connector)
-        if customer:
-            query = Q()
+
+        # if customer:
+        #     query = Q()
         customers = (
             Customer.objects
             .filter(query)
             .order_by("-id")
         )
         if shift and society_id and order_date:
-            customers = CustomerOrder.objects.filter(
-                order_date=order_date,
-                customer__society__public_id=society_id,
-                shift=shift,
-            ).order_by("-id")
+            query = Q()
+            query.add(Q(order_date=order_date) &
+                      Q(customer__society__public_id=society_id) &
+                      Q(shift=shift), query.connector)
+            if vendor_obj(request.user.public_id):
+                query.add(Q(vendor=vendor_obj(request.user.public_id)), query.connector)
+            else:
+                query.add(Q(delivery=vendor_delivery_obj(request.user.public_id)), query.connector)
+            customers = CustomerOrder.objects.filter(query).order_by("-id")
             response = customers[offset:limit] if pagination == "true" else customers
             customers_list = CustomerListByShiftSerializer(response, many=True).data
             society_name = Society.objects.filter(public_id=society_id).first()

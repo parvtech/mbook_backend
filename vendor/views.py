@@ -4,11 +4,11 @@ from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import FloatField, IntegerField, Value, Sum
+from django.db.models import FloatField, IntegerField, Sum, Value
 from django.utils import timezone
+from django.utils.datetime_safe import datetime
 
 import requests
-from django.utils.datetime_safe import datetime
 from oauth2_provider.models import AccessToken, Application
 from rest_framework import status
 from rest_framework.response import Response
@@ -26,16 +26,27 @@ from vendor.serializers import (
     CreateDeliveryPartnerSerializer,
     CreateSocietySerializer,
     DeliveryPartnerListSerializer,
+    GetMonthlyBillDetailSerializer,
     LoginSerializer,
     ProfileDetailSerializer,
     ResendOtpSerializer,
     SocietySerializer,
-    VerifyOtpSerializer, GetMonthlyBillDetailSerializer,
+    VerifyOtpSerializer,
 )
 
 
 def vendor_obj(public_id):
-    return Vendor.objects.get(public_id=public_id)
+    try:
+        return Vendor.objects.get(public_id=public_id)
+    except:
+        return False
+
+
+def vendor_delivery_obj(public_id):
+    try:
+        return VendorDeliveryPartner.objects.get(public_id=public_id)
+    except:
+        False
 
 
 class DashboardView(BaseView):
@@ -196,7 +207,7 @@ class VerifyOtpView(APIView):
                 token = requests.post(
                     request.build_absolute_uri("/") + "o/token/",
                     data=auth_data,
-                    )
+                )
                 res_data = token.json()
                 res_data["name"] = user.first_name
                 res_data["role"] = role

@@ -101,3 +101,19 @@ class UpdateCustomerOrderSerializer(serializers.Serializer):
 
 class UpdateCustomerOrderMilkSerializer(serializers.Serializer):
     milk_quantity = serializers.FloatField(required=False)
+
+
+class CustomerListSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="customer.name")
+    customer_public_id = serializers.IntegerField(source="customer.public_id")
+    order_public_id = serializers.IntegerField(source="public_id")
+    house_no = serializers.CharField(source="customer.house_no")
+    block_no = serializers.CharField(source="customer.block_no")
+    address = serializers.CharField(source="customer.address")
+    pincode = serializers.CharField(source="customer.pincode")
+    lat = serializers.CharField(source="customer.lat")
+    long = serializers.CharField(source="customer.long")
+
+    class Meta:
+        model = Customer
+        fields = []

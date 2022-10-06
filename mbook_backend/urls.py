@@ -6,14 +6,17 @@ from django.views.static import serve
 
 import oauth2_provider.views as oauth2_views
 
-from customer.views import CustomerPaymentStatusView, CustomerOrderView
+from customer.views import CustomerOrderView, CustomerPaymentStatusView
 from mbook_backend import settings
 from vendor.views import (
     CalendarView,
+    DetailMilkQuantity,
     LoginView,
     LogoutView,
+    MonthlyBillDetail,
     ResendOtpView,
-    VerifyOtpView, DetailMilkQuantity, MonthlyBillDetail, VendorDetailView,
+    VendorDetailView,
+    VerifyOtpView,
 )
 
 urlpatterns = [
