@@ -91,7 +91,7 @@ class CreateOrderSerializer(serializers.Serializer):
     order_date = serializers.DateField()
 
 
-STATUS = ((1, "on_the_way"), (2, "delivered"))
+STATUS = (("on_the_way", "on_the_way"), ("delivered", "delivered"))
 
 
 class UpdateCustomerOrderSerializer(serializers.Serializer):
