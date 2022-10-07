@@ -1,6 +1,6 @@
 constants = {
     "SuccessfullyCreated": "Successfully created.",
-    "SuccessfullyCompleted": "Transaction successfully completed.",
+    "SuccessfullyCompleted": "Successfully completed.",
     "BadRequestMessage": "The values sent was wrong or you are missing some value, check the error to see more detail",
     "SomethingWentWrong": "Something Went Wrong.",
     "Forbidden": "You do not have permission to perform this action.",

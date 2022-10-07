@@ -95,7 +95,7 @@ STATUS = (("on_the_way", "on_the_way"), ("delivered", "delivered"))
 
 
 class UpdateCustomerOrderSerializer(serializers.Serializer):
-    is_payment = serializers.BooleanField(required=False)
+    # is_payment = serializers.BooleanField(required=False)
     status = serializers.ChoiceField(choices=STATUS, required=False)
 
 

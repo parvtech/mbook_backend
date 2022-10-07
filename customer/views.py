@@ -213,14 +213,12 @@ class CustomerPaymentStatusView(BaseView):
         "DELETE": [["delete"]],
     }
 
-    def patch(self, request, public_id):
+    def put(self, request, public_id):
         try:
             serial_data = UpdateCustomerOrderSerializer(data=request.data)
             if serial_data.is_valid(raise_exception=True):
                 serializer_data = serial_data.validated_data
                 customer_order = CustomerOrder.objects.get(public_id=public_id)
-                if request.data.get("is_payment"):
-                    customer_order.is_payment = serializer_data["is_payment"]
                 if request.data.get("status"):
                     customer_order.status = serializer_data["status"]
                 customer_order.save()
@@ -229,6 +227,26 @@ class CustomerPaymentStatusView(BaseView):
                 )
         except CustomerOrder.DoesNotExist:
             return Response({"error": "Customer order does not exists."})
+
+    def patch(self, request, public_id):
+        try:
+            customer = Customer.objects.get(public_id=public_id)
+            month = request.GET.get('month')
+            year = request.GET.get('year')
+            is_payment = request.GET.get('is_payment')
+            customer_orders = CustomerOrder.objects.filter(
+                customer=customer,
+                order_date__month=month,
+                order_date__year=year
+            )
+            for customer_order in customer_orders:
+                customer_order.is_payment = is_payment
+                customer_order.save()
+            return Response(
+                {"message": "Customer Order payment status updated successfully."}
+            )
+        except Customer.DoesNotExist:
+            return Response({"error": "Customer does not exists."})
 
 
 class CustomerOrderView(BaseView):

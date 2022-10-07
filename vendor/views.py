@@ -424,39 +424,44 @@ class DetailMilkQuantity(BaseView):
 class MonthlyBillDetail(BaseView):
     def get(self, request, customer_id):
         try:
-            order_date = datetime.strptime(
-                request.GET.get("order_date"), "%Y-%m"
-            ).date()
-            customer_orders = CustomerOrder.objects.filter(
-                order_date__month=order_date.month,
-                order_date__year=order_date.year,
-                customer__public_id=customer_id,
-            ).order_by("order_date")
-            total_milk = customer_orders.aggregate(Sum("milk_quantity")).get(
-                "milk_quantity__sum"
-            )
-            total_price = 0
-            for customer_order in customer_orders:
-                price = customer_order.milk_quantity * customer_order.price
-                total_price += price
-            result = json.loads(
-                json.dumps(
-                    GetMonthlyBillDetailSerializer(customer_orders, many=True).data
+            if request.GET.get("order_date"):
+                order_date = datetime.strptime(
+                    request.GET.get("order_date"), "%Y-%m"
+                ).date()
+                customer_orders = CustomerOrder.objects.filter(
+                    order_date__month=order_date.month,
+                    order_date__year=order_date.year,
+                    customer__public_id=customer_id,
+                ).order_by("order_date")
+                total_milk = customer_orders.aggregate(Sum("milk_quantity")).get(
+                    "milk_quantity__sum"
                 )
-            )
-            prepare_data = []
-            order_dates = []
-            for odr in result:
-                odr_date = odr["order_date"]
-                if not odr_date in order_dates:
-                    prepare_data.append(odr)
-                    order_dates.append(odr["order_date"])
-            fresh_response = {
-                "total_milk": total_milk or 0,
-                "total_price": total_price,
-                "month": prepare_data,
-            }
-            return Response(fresh_response)
+                total_price = 0
+                for customer_order in customer_orders:
+                    price = customer_order.milk_quantity * customer_order.price
+                    total_price += price
+                result = json.loads(
+                    json.dumps(
+                        GetMonthlyBillDetailSerializer(customer_orders, many=True).data
+                    )
+                )
+                prepare_data = []
+                order_dates = []
+                for odr in result:
+                    odr_date = odr["order_date"]
+                    if not odr_date in order_dates:
+                        prepare_data.append(odr)
+                        order_dates.append(odr["order_date"])
+                fresh_response = {
+                    "total_milk": total_milk or 0,
+                    "total_price": total_price,
+                    "month": prepare_data,
+                }
+                return Response(fresh_response)
+            else:
+                return Response(
+                    {"error": "Please enter order date."}, status.HTTP_404_NOT_FOUND
+                )
         except CustomerOrder.DoesNotExist:
             return Response(
                 {"error": "Customer Order does not exists."}, status.HTTP_404_NOT_FOUND
